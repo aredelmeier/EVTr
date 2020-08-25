@@ -361,7 +361,23 @@ mle_cens_gpd_full <- function(data, threshold, information = c("observed", "expe
   out
 }
 
-
+#' A function to estimate the maximum likelihood estimator for a variety of methods.
+#'
+#' @param data Dataframe. One column is called "Injury_Length" and corresponds to the observations.
+#'
+#' @param method String. One of "MLE", "CensMLE", "MLE_full", or "CensMLE_full".
+#'
+#' @return Numeric. Corresponding to the maximum likelihood estimator based on one of the generalized Pareto distribution.
+#'
+#' @export
+#'
+#' @author Annabelle Redelmeier
+#'
+#' @examples
+#'
+#' data <- data.frame(Injury_Length = rexp(10), Censored = rbinom(10, 1, 0.5))
+#'
+#' mle(data = data, method = "MLE")
 
 mle <- function(data,
                 method = c("MLE",

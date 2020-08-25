@@ -2,10 +2,16 @@
 % Please edit documentation in R/estimation.R
 \name{mle_cens_gpd_full}
 \alias{mle_cens_gpd_full}
-\title{A function that calculates the maximum likelihood estimator based on the censored generalized Pareto distribution.}
+\title{A function that calculates the maximum likelihood estimator based on the censored generalized Pareto distribution.
+This function is directly copied from the (?) package.}
 \usage{
-mle_cens_gpd_full(data, threshold, information = c("observed",
-  "expected"), verbose = TRUE, ...)
+mle_cens_gpd_full(
+  data,
+  threshold,
+  information = c("observed", "expected"),
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{data}{Dataframe. One column is called "Injury_Length" and corresponds to the observations.}
@@ -22,6 +28,7 @@ Numeric. Corresponding to the maximum likelihood estimator based on the censored
 }
 \description{
 A function that calculates the maximum likelihood estimator based on the censored generalized Pareto distribution.
+This function is directly copied from the (?) package.
 }
 \examples{
 

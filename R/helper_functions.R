@@ -18,9 +18,27 @@
 
 
 excess <- function(data, ne){
+
+  if (!is.data.frame(data)) {
+    stop("data must be a data.frame.")
+  }
+
+
+  if (!("Injury_Length" %in% names(data))) {
+    stop("data must include a column called 'Injury_Length' with the data.")
+  }
+
+  if (is.null(ne)) {
+    stop("Please include 'ne'. ")
+  }
+
   data <- data.table(data)
 
   thresh <- QRM::findthreshold(data = data$Injury_Length, ne = ne)
+
+  if (length(thresh) > 1) {
+    stop("Please include a larger threshold so that not all data is below threshold.")
+  }
 
   exc <- data[Injury_Length >= thresh]
   exc[, excess := Injury_Length - thresh]

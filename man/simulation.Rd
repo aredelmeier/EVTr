@@ -5,8 +5,17 @@
 \title{This function generates data according to \code{specific} method and then applies the maximum likelihood estimator (mle)
 based on \code{method}.}
 \usage{
-simulation(censor = NULL, xi, n, num_inj, rate_exp, ne = NULL,
-  specific, seed, method)
+simulation(
+  censor = NULL,
+  xi,
+  n,
+  num_inj,
+  rate_exp,
+  ne = NULL,
+  specific,
+  seed,
+  method
+)
 }
 \arguments{
 \item{censor}{Integer. Where to censor observations.}

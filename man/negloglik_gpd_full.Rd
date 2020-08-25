@@ -2,7 +2,7 @@
 % Please edit documentation in R/estimation.R
 \name{negloglik_gpd_full}
 \alias{negloglik_gpd_full}
-\title{The negative censored log-likelihood of the generalized Pareto distribution implemented by the \code{dGPD} R package.}
+\title{The negative log-likelihood of the generalized Pareto distribution implemented in the \code{QRM} R package.}
 \usage{
 negloglik_gpd_full(theta, ydata)
 }
@@ -16,7 +16,7 @@ argument corresponds to $$beta$$.}
 Numeric. Corresponding to the maximum likelihood estimator based on the generalized Pareto distribution.
 }
 \description{
-The negative censored log-likelihood of the generalized Pareto distribution implemented by the \code{dGPD} R package.
+The negative log-likelihood of the generalized Pareto distribution implemented in the \code{QRM} R package.
 }
 \examples{
 

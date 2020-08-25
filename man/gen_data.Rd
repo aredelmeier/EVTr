@@ -6,9 +6,17 @@
 Based on a fixed parameter \code{censor}, some of the injuries and healthy periods will be censored based on the
 cummulative sum of the healthy and injury periods. Based on \code{specific}, certain observations will be returned.}
 \usage{
-gen_data(censor = NULL, xi, n, num_inj, rate_exp, ne = NULL,
-  specific = c("delete_censored_obs", "keep_censored_obs",
-  "keep_only_max_obs", "max_excess", "excess"), seed = 1)
+gen_data(
+  censor = NULL,
+  xi,
+  n,
+  num_inj,
+  rate_exp,
+  ne = NULL,
+  specific = c("delete_censored_obs", "keep_censored_obs", "keep_only_max_obs",
+    "max_excess", "excess"),
+  seed = 1
+)
 }
 \arguments{
 \item{censor}{Integer. Where to censor observations.}
@@ -46,11 +54,11 @@ see the actual length of the injury.
 point, each individual while either have an injury censored or a healthy period censored. But since we don't care about
 modelling healthy periods, if the healthy period is censored, we will have full information on the injuries.
 
-"Percent_of_injuries_censored" is the # injuries censored / # individuals (n).
+"Prop_of_injuries_censored" is the # injuries censored / # individuals (n).
 
-"Percent_of_ind_with_censored_injury" is the # injuries censored / total # injuries.
+"Prop_of_ind_with_censored_injury" is the # injuries censored / total # injuries.
 
-"Percent_max_censored" is the # individuals where the censored injury is their longest injury / # individuals.
+"Prop_max_censored" is the # individuals where the censored injury is their longest injury / # individuals.
 
 If \code{specific} = "keep_censored_obs", the columns are the same.
 
@@ -61,7 +69,7 @@ If \code{specific} = "max_excess", the above columns all apply.  In this datafra
 above the threshold decided by \code{ne}. A new column "Injury_Length_before" is the original length of the injury (i.e
 threshold - Injury_Length).
 
-"Percent_of_obs_above_threshold" = # injuries >= threshold / total # of injuries.
+"Prop_of_obs_above_threshold" = # injuries >= threshold / total # of injuries.
 
 If \code{specific} = "excess", the columns are the same as "max_excess".
 }

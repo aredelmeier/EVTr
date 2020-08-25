@@ -4,8 +4,13 @@
 \alias{mle_gpd_full}
 \title{A function that calculates the maximum likelihood estimator based on the generalized Pareto distribution.}
 \usage{
-mle_gpd_full(data, threshold, information = c("observed", "expected"),
-  verbose = TRUE, ...)
+mle_gpd_full(
+  data,
+  threshold,
+  information = c("observed", "expected"),
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{data}{Dataframe. One column is called "Injury_Length" and corresponds to the observations.}
