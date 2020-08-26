@@ -1,0 +1,231 @@
+---
+title: "EVTr: Using extreme value theory to estimate long lasting injuries"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using EVTr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 3
+)
+```
+
+## Introduction
+
+Injured athletes or performers can cost teams, sports associations, and coaches a lot of money. Therefore, it can be useful to predict the number of seriously injured athletes and the length of these injuries at the start of a season or year. It turns out that individuals (especially professional athletes) are injured all the time and often get better within the day or the week. However, we are interested in *long term injuries* that last a season or many years since these are the most costly. The problem is that these types of injuries happen the least. Similar to massive earthquakes and stock market crashes, how do we model these types of scarce and infrequent injuries? 
+
+We use extreme value theory - and specifically the peaks-over-threshold method - to model this type of process. To begin, we do various simulation studies to study how various distributional assumptions, censoring, and data manipulations can affect estimation. We assume that individuals live in two states - they can either be injured or healthy. Individuals start healthy (or in a healthy state) and then remain healthy for a while until they switch to being injured (or in an injured state). Individuals continue alternating between these two states until our study is over (or *censoring* occurs). Then we use extreme value theory to study these injury periods. Specifically, we ask
+
+* Does censoring matter? Can we assume the censored injury was not censored and use MLE normally? 
+* Will the censored injury be the longest injury and therefore should censoring be taken into account? 
+* What is the proportion of injuries being censored as appose to healthy periods? Will the distribution of the injuries/healthy periods play a roll in this proportion?
+
+This package accompanies a masters thesis called "Using extreme value theory to model severe injuries of circus artists" which can be found: https://escholarship.mcgill.ca/concern/theses/fn107132j. 
+
+## Background
+
+The main extreme value theory references are (Coles, 2001), (McNeil et al., 2005), and (Embrechts et al., 1997). The entire background can be found in the thesis.
+
+### Generalized extreme value distribution
+
+The distribution function of the (standard) generalized extreme value (GEV) distribution is given by 
+$$
+H_\xi(x) = 
+\begin{cases}
+\exp(-(1+ \xi x)^{-1/\xi}), & \xi \ne 0;\\
+\exp(-e^{-x}), & \xi = 0
+\end{cases}
+$$ where $1 + \xi x >0$ and $\xi$ is the so-called shape parameter.
+
+The GEV distributions comprise a *family* of distributions indexed by $\xi$. Depending on the sign of $\xi$, $H_\xi$ takes on a named distribution. Specifically,
+
+* if $\xi > 0$, $H_\xi(x)$ is the *Frechet* distribution; 
+* if $\xi < 0$, $H_\xi(x)$ is the *Weibull* distribution; and 
+* if $\xi = 0$, $H_\xi(x)$ is the *Gumbel* distribution. 
+
+The three distributions differ in their tail behaviour. Both the Frechet and Gumbel distributions have infinite upper endpoints, $x_F$; however, the Frechet tail decays polynomially whereas the Gumbel tail decays exponentially. The Weibull distribution has a finite upper endpoint, $x_F$.
+
+The Fisher-Tippett, Gnedenko theorem states that if $M_n = \max(X_1, \dots, X_n)$, where $X_1, \dots, X_n$ are iid data from some unknown distribution $F$, then, if there exist sequences of constants $\{ c_n > 0\}$ and $\{d_n\}$ such that 
+$$
+P\{(M_n - d_n)/c_n \le x\} \rightarrow H(x)
+$$ as $n \rightarrow \infty$ for a non-degenerate distribution $H(x)$, then $H$ must be a distribution of type $H_\xi$, i.e $H(x) = H_\xi(x)$, where $H_\xi(x)$ is a generalized extreme value distribution. 
+
+In other words, if we have some data and can find a way to block it and take the maximum of each block, the distribution of these maxima will be GEV distributed as the number of blocks goes to infinity. 
+
+An important **definition** for later: If 
+$$
+\lim_{n \rightarrow \infty} P((M_n - d_n)/c_n \le x) = \lim_{n \rightarrow \infty} F^n(c_nx + d_n) = H_\xi(x) 
+$$
+for any $x \in \mathbf{R}$ and sequences of constants $\{c_n > 0\}$ and $\{d_n \}$, then we say $F$ belongs to the maximum domain of attraction of $H_\xi$, written $F \in \text{MDA}(H_\xi)$.  
+
+This means that if the limit of the normalized maxima tend to a GEV distribution, we say the underlying distribution $F$ belongs to the **maximum domain of attraction** of the GEV distribution, $H$. It turns out that most continuous distributions belong to $\text{MDA}(H_\xi)$, whereas most discrete distributions do not.  
+
+Finally, the standard likelihood of the GEV is:
+
+$$
+\ell(\mu, \sigma, \xi; m_{n1}, \dots, m_{nm}) = -m \log \sigma - \bigg(1 + \frac{1}{\xi}\bigg)\sum_{i=1}^m \log\bigg[1 + \xi \bigg(\frac{m_{ni} - \mu}{\sigma}\bigg)\bigg] \\
+-\sum_{i=1}^m \bigg[1 + \xi \bigg(\frac{m_{ni} - \mu}{\sigma}\bigg)\bigg]^{-1/\xi}.
+$$
+
+### Generalized Pareto distribution
+
+Assume that $X_1, X_2, \dots$ is a sequence of iid rvs with continuous distribution $F$. Then an \textit{exceedance} is defined as any point $X_i > u$ and the \textit{excess} is the value $X_i - u$ given that $X_i > u$. The \textit{peaks-over-threshold} method is based on characterizating the limiting distribution of the conditional excesses ($X_i - u|X_i > u$) above the threshold $u$.
+
+The distribution of the generalized Pareto (GP) distribution is given by 
+$$
+G_{\xi, \beta}(x) =
+\begin{cases}
+1 - (1 + \xi x /\beta)^{-1/\xi}, & \xi \ne 0;\\
+1 - \exp(-x/\beta), & \xi = 0,
+\end{cases}
+$$ 
+
+where $\beta > 0$, and $x \ge 0$ when $\xi \ge 0$ and $0 \le x \le -\beta/\xi$ when $\xi < 0$. The parameters $\xi$ and $\beta$ are the so-called *shape* and *scale* parameters, respectively. 
+
+The GP distribution takes on a named distribution depending on the sign of $\xi$. Specifically,
+
+* if $\xi > 0$, $G_{\xi, \beta}(x)$ is an *ordinary Pareto* distribution with $\alpha = 1/\xi$ and $\kappa = \beta/\xi$; 
+* if $\xi < 0$, $G_{\xi, \beta}(x)$ is a *Pareto type II* distribution; and
+* if $\xi = 0$, $G_{\xi, \beta}(x)$ is an *exponential* distribution. 
+
+If $\xi < 0$ the distribution has an upper bound of $u - \beta/\xi$; if $\xi \ge 0$, the distribution has no upper limit.
+
+We also define the **excess distribution**: Let $X$ be a rv with df $F$. The excess distribution over the threshold $u$ has df
+$$
+F_u(x) = P(X - u \le x | X > u).
+$$
+
+The GP distribution has all sorts of nice properties. For example,
+$$
+G_{\xi, \beta} \in \text{MDA}(H_\xi)
+$$
+for all $\xi \in \mathbf{R}$ and $\beta >0$. In other words, the GP distribution belongs to the maximum domain of attraction of the GEV distribution. 
+
+
+In addition, if we have some data that follows a $GP$ distribution with shape parameter $\xi \ne 0$ and scale parameter $\beta$, the excess distribution over the threshold $u$ remains a GP distribution with the same shape parameter, $\xi$, but with an updated scaling parameter, $\beta(u)$, that grows linearly with $u$. 
+
+Finally, the main theorem (of (Pickands, Balkema-de Haan)): 
+
+We can find a function $\beta(u)$ such that 
+$$
+\lim_{u \rightarrow x_F} \underset{0 \le x < x_F - u}{\sup}|F_u(x) - G_{\xi, \beta(u)}(x)| = 0
+$$ 
+if and only if $F \in \text{MDA}(H_\xi)$, $\xi \in \mathbf{R}$.
+
+In other words, if our underlying distribution $F$ is in the maximum domain of attraction of the GEV distribution, the excess distribution will converge to the GP distribution as the threshold $u$ goes to infinity. **This is very powerful!** This means that if we have (almost any) continuous underlying distribution and our data is iid, the exceedances for a given threshold will be generalized Pareto distributed. Given some extreme data, we can estimate the GP parameters and then use these to determine facts about our data or estimate the number of extremes in the following year or period. 
+
+To model threshold exceedances, suppose that we have iid data $X_1, X_2, \dots$ from some continuous distribution $F$. Then the theory states that if we choose a threshold $u$ large enough, the distribution of $Y_i = X_i - u$ given $X_i > u$ will be approximately generalized Pareto, provided $F \in \text{MDA}(H_\xi)$. We can draw inference from these excesses by estimating the parameters of the GP distribution using standard maximum likelihood methods. To do so, first, rewrite the variables that lie above $u$ as $\tilde{X}_1, \dots, \tilde{X}_{N_u}$ (where $N_u$ is the random variable denoting the number of data points greater than $u$) and the excesses above $u$ as $Y_i = \tilde{X}_i - u$, for $i = 1, \dots, N_u$. Then, the parameters of the GP distribution can be estimated by fitting the $Y_i$ to the GP likelihood. 
+
+Assuming that $Y_1, \dots, Y_{n_u}$ are iid GP rvs with parameters $\xi$ and $\beta$, (and $n_u$ is known), the log-likelihood function for $\xi$ and $\beta$ when $\xi \ne 0$ is
+
+$$
+\ell(\xi, \beta;y_1, \dots, y_{n_u} ) = -n_u \log \beta - \bigg(1 + \frac{1}{\xi} \bigg)\sum_{i=1}^{n_u} \log \bigg(1 + \xi \frac{y_i}{\beta} \bigg).
+$$
+
+## Generating data
+
+Here we show the main function of EVTr. Generating data can be done using gen_data() where: 
+
+* 'censor' stands for the censoring time;
+* 'xi' the $xi$ parameter in the generalized Pareto distribution;
+* 'n' the number of individuals or athletes in the study;
+* 'num_inj' the number of injuries each will have (we never witness all of these injuries unless 'censor' = NULL or a very large number); and
+* 'rate_exp' the rate parameter for the non-injury periods. 
+* The parameter 'ne' is only used when using one of the last two method (either 'max_excess' or 'excess'). More on this below. 
+
+```{r setup}
+library(EVTr)
+```
+
+```{r}
+df <- gen_data(censor = 10,
+         xi = 1,
+         n = 5,
+         num_inj = 5,
+         rate_exp = 1,
+         ne = NULL,
+         specific = c("delete_censored_obs"),
+         seed = 1)
+
+head(df, 6)
+```
+
+
+This function generates data ('Injury_Length'), assigns an ID for each individual and discloses if the injury was censored or not. Although the healthy periods are not shown in the table, we can assume that after the injury period is over, a healthy period begins. If the injury was censored, the 'Actual' column discloses the length of the actual injury (if we had an oracle, for example). 
+In addition, 
+
+* 'Prop_of_injuries_censored' is the number of injuries censored divided by the number of individuals ('n'). 
+* 'Prop_of_ind_with_censored_injury' is the number of injuries censored divided by the total number of injuries. 
+* 'Prop_max_censored' is the number of individuals where the censored injury is the individual's longest injury divided by the number of individuals (n).
+
+The **specific** parameter can take one of five options: 
+
+* **delete_censored_obs**: simulates data, censors the observations, but only returns the fully observed (injury) periods.
+* **keep_censored_obs**: simulates data, censors the observations, and returns all (injury) periods.
+* **keep_only_max_obs**: simulates data, censors, returns only the longest injury (censored or not censored) for each individual.
+* **max_excess**: simulates data, censors, calculates the longest injury (censored or not censored), then calculates the threshold based on \code{ne} (number of exceedances above the threshold). Finally returns only the excess above this given threshold.
+* **excess**: simulates data, censors, then calculates the threshold based on \code{ne} (number of exceedances above
+the threshold). Finally returns only the excess above this given threshold.
+
+In summary, we always generate/simulate data in the same way but then return various forms of the data (just the not censored observations, all the data, just the maxima, just the exceedances of the maxima, and just the exceedances above a threshold). 
+
+## Estimation
+
+Estimating the parameters of the generalized Pareto distribution is done using mle(). There are two main estimation methods: the regular maximum likelihood estimator under the generalized Pareto distribution assumption and the *censored* version of the generalized Pareto distribution. The log-likelihood of the GP distribution is shown above.
+
+We estimate using the 'mle' function:
+
+```{r}
+# non-censored MLE
+mle(data = df, method = "MLE")
+
+```
+
+
+```{r}
+# censored MLE
+mle(data = df, method = "CensMLE")
+
+```
+
+Recall that since none of the injuries are censored (we removed all of these using 'specific' = "delete_censored_obs"), these MLE estimates are the same. What if we don't delete the estimates?
+
+
+```{r}
+# non-censored MLE
+df_censored <- gen_data(censor = 10,
+         xi = 1,
+         n = 5,
+         num_inj = 5,
+         rate_exp = 1,
+         ne = NULL,
+         specific = c("keep_censored_obs"),
+         seed = 1)
+
+mle(data = df_censored, method = "MLE")
+
+```
+
+```{r}
+# censored MLE
+mle(data = df_censored, method = "CensMLE")
+
+```
+
+Now we do not get the same MLE. 
+
+
+## Simulation studies
+
+The different simulation studies can be found in inst/scripts although a lot of the parameters have been changed since the original thesis to keep the running time minimal. The hope is that eventually the masters thesis will be able to be reproduced through various simple scripts - but in August 2020 this is not done There was a real data example in the thesis which, due to privacy rules, is not included in EVTr. 
+
+
+
+
+

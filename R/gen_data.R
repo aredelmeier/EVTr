@@ -31,6 +31,8 @@
 #' @param specific String. Corresponding to one of "delete_censored_obs", "keep_censored_obs", "keep_only_max_obs",
 #' "max_excess" or "excess".
 #'
+#' @param seed Integer.
+#'
 #' @return Dataframe.
 #'
 #' This dataframe will have various columns depending on \code{specific}.
@@ -77,15 +79,20 @@
 #' @examples
 #' censor <- 3; xi <- 0.5; n <- 10; num_inj <- 3; rate_exp <- 1; ne <- 5
 #'
-#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific = "delete_censored_obs")[]
+#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
+#' specific = "delete_censored_obs")[]
 #'
-#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific = "keep_censored_obs")[]
+#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
+#' specific = "keep_censored_obs")[]
 #'
-#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific = "keep_only_max_obs")[]
+#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
+#' specific = "keep_only_max_obs")[]
 #'
-#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, ne = ne, specific = "max_excess")[]
+#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
+#' ne = ne, specific = "max_excess")[]
 #'
-#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, ne = ne, specific = "excess")[]
+#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
+#' ne = ne, specific = "excess")[]
 #'
 
 gen_data <- function (censor = NULL,
@@ -100,6 +107,12 @@ gen_data <- function (censor = NULL,
                                    "max_excess",
                                    "excess"),
                       seed = 1) {
+
+  ID <- ave <- obs <- obs_id <- variable <- injury <- Censored <- csum <- lagged_censored <- NULL
+  first_censored <- after_censored <- Censored_Length <- Injury_Length_with_censored <- NULL
+  Injury_Length <- Actual <- Any_Injury_Censored <- max_injury_length <- delta <- Injury_Length_before <- NULL
+
+
   set.seed(seed)
 
   # Generate data
@@ -287,7 +300,8 @@ gen_data <- function (censor = NULL,
 #' seed <- 1
 #' method <- "MLE"
 #'
-#' simulation(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific = "delete_censored_obs",
+#' simulation(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
+#' specific = "delete_censored_obs",
 #' seed = seed, method = method)[]
 
 

@@ -10,6 +10,8 @@
 #'
 #' @export
 #'
+#' @import stats
+#'
 #' @author Annabelle Redelmeier
 #'
 #' @examples
@@ -154,6 +156,8 @@ negloglik_cens_gpd_full <- function(theta, ydata) {
 #' mle_gpd(data = data)
 mle_gpd <- function(data) {
 
+  var <- optim <- NULL
+
   injury <- data$Injury_Length
   injury <- as.numeric(injury)
   Nu <- length(injury)
@@ -187,6 +191,8 @@ mle_gpd <- function(data) {
 #' mle_cens_gpd(data = data)
 mle_cens_gpd <- function(data) {
 
+  var <- optim <- NULL
+
   injury <- data$Injury_Length
   cens <- data$Censored
   injury <- as.numeric(injury)
@@ -205,160 +211,6 @@ mle_cens_gpd <- function(data) {
 
   fit <- optim(theta, negloglik_cens_gpd, tmp = data)
   return(fit$par[1])
-}
-
-#' A function that calculates the maximum likelihood estimator based on the generalized Pareto distribution.
-#'
-#' @param data Dataframe. One column is called "Injury_Length" and corresponds to the observations.
-#'
-#' @param threshold Numeric. Corresponds to the threshold. Only the excess above the threshold will be used to
-#' estimate the parameters of the generalized Pareto distribution.
-#'
-#' @param information String. Either "observed" or "expected".
-#'
-#' @param verbose. Logical. If TRUE, prints more information.
-#'
-#' @return Numeric. Corresponding to the maximum likelihood estimator based on the generalized Pareto distribution.
-#'
-#' @export
-#'
-#' @author Annabelle Redelmeier
-#'
-#' @examples
-#'
-#' data <- data.frame(Injury_Length = rexp(10))
-#'
-#' mle_gpd_full(data = data, threshold = 0.5, information = "observed", verbose = TRUE)
-mle_gpd_full <- function (data, threshold, information = c("observed", "expected"), verbose = TRUE, ...) {
-
-  data <- data$Injury_Length
-
-  information <- match.arg(information)
-
-  n <- length(data)
-
-  exceedances <- data[data > threshold]
-  excess <- exceedances - threshold
-  Nu <- length(excess)
-  xbar <- mean(excess)
-  a0 <- xbar
-  gamma <- -0.35
-  delta <- 0
-  pvec <- ((1:Nu) + delta)/(Nu + delta)
-  a1 <- mean(sort(excess) * (1 - pvec))
-  xi <- 2 - a0/(a0 - 2 * a1)
-  beta <- (2 * a0 * a1)/(a0 - 2 * a1)
-  par.ests <- c(xi, beta)
-
-  deriv <- function(theta, ydata) {
-    xi <- theta[1]
-    beta <- theta[2]
-    term1 <- sum(ydata/(beta + xi * ydata))
-    term2 <- sum(log(1 + xi * ydata/beta))
-    d1 <- -term2 * xi^(-2) + (1 + 1/xi) * term1
-    d2 <- (length(ydata) - (xi + 1) * term1)/beta
-    c(d1, d2)
-  }
-
-  fit <- optim(par.ests, fn = negloglik_gpd_full, gr = deriv, ydata = excess)
-
-  par.ests <- fit$par
-  par.ests[2] <- abs(par.ests[2])
-
-  if (information == "observed") {
-    fisher <- hessian(negloglik_gpd_full, fit$par, ydata = excess)
-    varcov <- solve(fisher)
-  }
-  if (information == "expected") {
-    one <- (1 + par.ests[1])^2/Nu
-    two <- (2 * (1 + par.ests[1]) * par.ests[2]^2)/Nu
-    cov <- -((1 + par.ests[1]) * par.ests[2])/Nu
-    varcov <- matrix(c(one, cov, cov, two), 2)
-  }
-  par.ses <- sqrt(diag(varcov))
-  p.less.thresh <- 1 - Nu/n
-  out <- list(n = length(data),
-              p.less.thresh = p.less.thresh, n.exceed = Nu,
-              par.ests = par.ests, par.ses = par.ses, varcov = varcov
-  )
-
-  names(out$par.ests) <- c("xi", "beta")
-  names(out$par.ses) <- c("xi", "beta")
-  out
-}
-
-#' A function that calculates the maximum likelihood estimator based on the censored generalized Pareto distribution.
-#' This function is directly copied from the (?) package.
-#'
-#' @param data Dataframe. One column is called "Injury_Length" and corresponds to the observations.
-#'
-#' @param threshold Numeric. Corresponds to the threshold. Only the excess above the threshold will be used to
-#' estimate the parameters of the generalized Pareto distribution.
-#'
-#' @param information String. Either "observed" or "expected".
-#'
-#' @param verbose. Logical. If TRUE, prints more information.
-#'
-#' @return Numeric. Corresponding to the maximum likelihood estimator based on the censored generalized Pareto distribution.
-#'
-#' @export
-#'
-#' @author Annabelle Redelmeier
-#'
-#' @examples
-#'
-#' data <- data.frame(Injury_Length = rexp(10), Censored = rbinom(10, 1, 0.5))
-#'
-#' mle_cens_gpd_full(data = data, threshold = 0.5, information = "observed", verbose = TRUE)
-mle_cens_gpd_full <- function(data, threshold, information = c("observed", "expected"), verbose = TRUE, ...) {
-
-  data <- data.table(data)
-  information <- match.arg(information)
-
-  n <- nrow(data)
-
-  data <- data[Injury_Length > threshold]
-  cens <- data$Censored
-  exceedances <- data$Injury_Length
-  excess <- exceedances - threshold
-  Nu <- length(excess)
-  xbar <- mean(excess)
-  a0 <- xbar
-  gamma <- -0.35
-  delta <- 0
-  pvec <- ((1:Nu) + delta)/(Nu + delta)
-  a1 <- mean(sort(excess) * (1 - pvec))
-  xi <- 2 - a0/(a0 - 2 * a1)
-  beta <- (2 * a0 * a1)/(a0 - 2 * a1)
-  par.ests <- c(xi, beta)
-
-  fit <- optim(par.ests, fn = negloglik_cens_gpd_full, ydata = cbind(excess, cens))
-
-  par.ests <- fit$par
-  par.ests[2] <- abs(par.ests[2])
-
-
-  if (information == "observed") {
-    fisher <- hessian(negloglik_cens_gpd_full, fit$par, ydata = cbind(excess, cens))
-    varcov <- solve(fisher)
-  }
-  if (information == "expected") {
-    one <- (1 + par.ests[1])^2/Nu
-    two <- (2 * (1 + par.ests[1]) * par.ests[2]^2)/Nu
-    cov <- -((1 + par.ests[1]) * par.ests[2])/Nu
-    varcov <- matrix(c(one, cov, cov, two), 2)
-  }
-
-  par.ses <- sqrt(diag(varcov))
-  p.less.thresh <- 1 - Nu/n
-  out <- list(n = n,
-              p.less.thresh = p.less.thresh, n.exceed = Nu,
-              par.ests = par.ests, par.ses = par.ses, varcov = varcov
-  )
-
-  names(out$par.ests) <- c("xi", "beta")
-  names(out$par.ses) <- c("xi", "beta")
-  out
 }
 
 #' A function to estimate the maximum likelihood estimator for a variety of methods.
@@ -381,9 +233,7 @@ mle_cens_gpd_full <- function(data, threshold, information = c("observed", "expe
 
 mle <- function(data,
                 method = c("MLE",
-                           "CensMLE",
-                           "MLE_full",
-                           "CensMLE_full")){
+                           "CensMLE")){
 
   method <- match.arg(method)
   if (method == "MLE") {
@@ -393,13 +243,5 @@ mle <- function(data,
   } else if (method == "CensMLE") {
 
     mle_cens_gpd(data)
-
-  } else if (method == "MLE_full") {
-
-    mle_gpd_full(data, information = information)
-
-  } else if (method == "CensMLE_full") {
-
-    mle_cens_gpd_full(data, information = information)
   }
 }

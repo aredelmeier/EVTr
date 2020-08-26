@@ -9,6 +9,8 @@
 #'
 #' @export
 #'
+#' @import QRM
+#'
 #' @author Annabelle Redelmeier
 #'
 #' @examples
@@ -18,6 +20,8 @@
 
 
 excess <- function(data, ne){
+
+  Injury_Length <- Injury_Length_before <- threshold <- NULL
 
   if (!is.data.frame(data)) {
     stop("data must be a data.frame.")

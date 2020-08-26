@@ -52,7 +52,8 @@ specific <- "delete_censored_obs"
 seed <- 1
 method <- "MLE"
 
-simulation(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific = "delete_censored_obs",
+simulation(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
+specific = "delete_censored_obs",
 seed = seed, method = method)[]
 }
 \author{
