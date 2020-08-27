@@ -1,9 +1,8 @@
-# library(fExtremes)
-
+library(EVTr)
 library(QRM) # use this for fit.GEV
-
 library(evd) # use this for gevFit
 
+library(data.table)
 library(xtable)
 
 ###########################################################
@@ -11,11 +10,10 @@ library(xtable)
 ###########################################################
 
 # Truth
-
 xi <- 0.2
 mu <- 0
 sigma <- 1
-k <- 100 # 1/0.01 = 100
+k <- 100
 xk <- 5
 
 #P(X > xk)
@@ -29,7 +27,6 @@ frechet <- QRM::rGEV(n = 1000, xi = xi, mu = mu, sigma = sigma)
 plot(frechet)
 
 # fit with frechet
-
 xi_frechet_hat <- as.numeric(QRM::fit.GEV(frechet)$par.ests[1])
 xi_frechet_se <- as.numeric(QRM::fit.GEV(frechet)$par.ses[1])
 mu_frechet_hat <- as.numeric(QRM::fit.GEV(frechet)$par.ests[2])
@@ -45,7 +42,6 @@ Prob_frechet_hat <- 1 - exp(- (1 + xi_frechet_hat * ((xk - mu_frechet_hat) /
 zk_frechet_hat <- mu_frechet_hat - (sigma_frechet_hat / xi_frechet_hat) * (1 - (-log(1 - 1 / k)) ^ (- xi_frechet_hat))
 
 # fit with Pareto
-
 xi_pareto_hat <- as.numeric(QRM::fit.GPD(frechet, threshold = 0)$par.ests[1])
 xi_pareto_se <- as.numeric(QRM::fit.GPD(frechet, threshold = 0)$par.ses[1])
 beta_pareto_hat <- as.numeric(QRM::fit.GPD(frechet, threshold = 0)$par.ests[2])
@@ -92,7 +88,6 @@ pareto <- QRM::rGPD(n = 1000, xi = xi, beta = beta)
 plot(pareto)
 
 # fit with frechet
-
 xi_frechet_hat2 <- as.numeric(QRM::fit.GEV(pareto)$par.ests[1])
 xi_frechet_se2 <- as.numeric(QRM::fit.GEV(pareto)$par.ses[1])
 mu_frechet_hat2 <- as.numeric(QRM::fit.GEV(pareto)$par.ests[2])
@@ -109,7 +104,6 @@ zk_frechet_hat2 <- mu_frechet_hat2 - (sigma_frechet_hat2 /
                                         xi_frechet_hat2) * (1 - (-log(1 - 1 / k)) ^ (- xi_frechet_hat2))
 
 # fit with Pareto
-
 xi_pareto_hat2 <- as.numeric(QRM::fit.GPD(pareto, threshold = 0)$par.ests[1])
 xi_pareto_se2 <- as.numeric(QRM::fit.GPD(pareto, threshold = 0)$par.ses[1])
 beta_pareto_hat2 <- as.numeric(QRM::fit.GPD(pareto, threshold = 0)$par.ests[2])

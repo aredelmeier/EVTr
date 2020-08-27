@@ -28,4 +28,15 @@ test_that("Test mle function in estimation.R", {
   # the same data but different mle method should give different estimates
   expect_true(mle(data = data, method = "MLE") != mle(data = data, method = "CensMLE"))
 
+  # should give the same answer - these are very similar methods - one just comes from the QRM package
+  tmp <- mle(data = data, method = "MLE")
+  orig <- mle(data = data, method = "MLE_full", threshold = 0, information = "observed")$par.ests[["xi"]]
+  expect_identical(round(tmp), round(orig))
+
+  # should give the same answer - these are very similar methods - one just comes from the QRM package
+  tmp <- mle(data = data, method = "CensMLE")
+  orig <- mle(data = data, method = "CensMLE_full", threshold = 0, information = "observed")$par.ests[["xi"]]
+  expect_identical(round(tmp), round(orig))
+
+
 })

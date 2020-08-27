@@ -2,8 +2,8 @@
 % Please edit documentation in R/gen_data.R
 \name{simulation}
 \alias{simulation}
-\title{This function generates data according to \code{specific} method and then applies the maximum likelihood estimator (mle)
-based on \code{method}.}
+\title{This function generates data according to \code{specific} method and then applies the maximum likelihood
+estimator (mle) based on \code{method}.}
 \usage{
 simulation(
   censor = NULL,
@@ -36,14 +36,15 @@ simulation(
 
 \item{seed}{Numeric. Seed to set.}
 
-\item{method}{String. Corresponding to one of ""MLE", "CensMLE", "MLE_delete_censored", "N", "MLE_full" or "CensMLE_full".}
+\item{method}{String. Corresponding to one of ""MLE", "CensMLE", "MLE_delete_censored", "N", "MLE_full" or
+"CensMLE_full".}
 }
 \value{
 Numeric. Corresponding to the maximum likelihood estimator based on \code{method}.
 }
 \description{
-This function generates data according to \code{specific} method and then applies the maximum likelihood estimator (mle)
-based on \code{method}.
+This function generates data according to \code{specific} method and then applies the maximum likelihood
+estimator (mle) based on \code{method}.
 }
 \examples{
 

@@ -12,7 +12,8 @@ Depends: R (>= 3.5.0)
 Imports:
   data.table,
   QRM,
-  stats
+  stats,
+  numDeriv
 Suggests:
   testthat,
   knitr,

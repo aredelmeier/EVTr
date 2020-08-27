@@ -10,7 +10,8 @@ mle_gpd(data)
 \item{data}{Dataframe. One column is called "Injury_Length" and corresponds to the observations.}
 }
 \value{
-Numeric. Corresponding to the maximum likelihood estimator based on the generalized Pareto distribution.
+Numeric. Corresponding to the maximum likelihood estimator based on the generalized Pareto
+distribution.
 }
 \description{
 A function that calculates the maximum likelihood estimator based on the generalized Pareto distribution.

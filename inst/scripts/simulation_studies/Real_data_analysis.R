@@ -1,8 +1,7 @@
 
-library(QRM)
-library(extRemes)
-
-library(dplyr)
+library(QRM) # for peaks-of-threshold model
+library(extRemes) # for exponential
+library(data.table)
 library(ggplot2)
 library(xtable)
 
@@ -155,7 +154,7 @@ data_u_cens <- data_u[Censored == 1]
 
 CdS_ties <- data_u[, n := .N, by = "Injury_Length"]
 
-method <- c("MLE","CensMLE")
+method <- c("MLE_full","CensMLE_full")
 
 met_all <- matrix(NA, nrow = 2, ncol = 4)
 colnames(met_all) <- c("MLE", "se", "CensMLE", "se")
@@ -163,16 +162,15 @@ rownames(met_all) <- c("xi", "beta")
 
 
 for (i in 1:length(method)) {
-  met_all[1, 2 * i - 1] <- mle(data = data, threshold = threshold, method = method[i],
-                             information = "observed")$par.ests[1]
-  met_all[1, i + i] <-  mle(data = data, threshold = threshold, method = method[i],
-                         information = "observed")$par.ses[1]
+  met_all[1, 2 * i - 1] <- mle(data = data, threshold = threshold, method = method[i])
+  met_all[1, i + i] <-  mle(data = data, threshold = threshold, method = method[i])$par.ses[1]
   met_all[2, 2 * i - 1] <-  mle(data = data, threshold = threshold, method = method[i],
                              information = "observed")$par.ests[2]
   met_all[2, i + i] <-  mle(data = data, threshold = threshold, method = method[i],
                          information = "observed")$par.ses[2]
 }
 met_all
+
 
 ###############################################################
 ################ Calculate Quantiles  #########################
@@ -390,7 +388,7 @@ data_max_u[, Injury_Length := Injury_Length - threshold]
 
 data <- data_max
 
-method <- c("MLE", "CensMLE")
+method <- c("MLE_full", "CensMLE_full")
 
 met_all_max <- matrix(NA, nrow = 2, ncol = 4)
 colnames(met_all_max) <- c("MLE", "se", "CensMLE", "se")

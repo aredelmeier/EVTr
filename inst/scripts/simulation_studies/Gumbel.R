@@ -1,13 +1,11 @@
-# library(fExtremes)
-
-library(QRM) # use this for fit.GEV
-
-library(evd) # use this for gevFit
-
-library(extRemes) # use this for fevd
-
 library(EVTr)
 
+library(QRM) # use this for fit.GEV
+library(evd) # use this for gevFit
+library(extRemes) # use this for fevd
+
+library(data.table)
+library(ggplot2)
 library(xtable)
 
 ###########################################################
@@ -31,7 +29,6 @@ set.seed(1)
 frechet <- QRM::rGEV(n = 1000, xi = xi, mu = mu, sigma = sigma)
 
 # Fit GEV
-
 gpd_extRemes <- extRemes::fevd(x = frechet,  type = "GEV")
 gpd_extRemes_exp <- extRemes::fevd(x = frechet,  type = "Gumbel")
 
@@ -52,7 +49,6 @@ Prob_frechet_hat <- 1 - exp(- exp(- (xk - mu_frechet_hat) / sigma_frechet_hat))
 zk_frechet_hat <- mu_frechet_hat - sigma_frechet_hat * log(- log(1 - 1 / k))
 
 # Fit Pareto
-
 gpd_extRemes <- extRemes::fevd(x = frechet, threshold = 0, type = "GP")
 gpd_extRemes_exp <- extRemes::fevd(x = frechet, threshold = 0, type = "Exponential")
 
@@ -91,7 +87,7 @@ xtable(frechet_table, digits = c(3, 3, 3, 3, 3, 3))
 
 xi <- 0
 beta <- 1
-k <- 100 # 1/0.1 = 10
+k <- 100
 xk <- 5
 
 #P(X > xk)
@@ -108,16 +104,13 @@ pareto_solve <- function(beta) {
   }
   root <- uniroot(pareto_xk, lower = 0.00000001, upper = 100000)$root
   return(root)
-
 }
-
 
 set.seed(1)
 pareto <- rexp(n = 1000, rate = beta)
 plot(pareto)
 
 # GEV
-
 gpd_extRemes <- extRemes::fevd(x = pareto, type = "GEV")
 gpd_extRemes_exp <- extRemes::fevd(x = pareto, type = "Gumbel")
 

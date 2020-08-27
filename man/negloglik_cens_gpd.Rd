@@ -7,11 +7,11 @@
 negloglik_cens_gpd(theta, tmp)
 }
 \arguments{
-\item{theta}{Vector. Length 2. The first argument corresponds to $$xi$$ in the GPD distribution and the second
-argument corresponds to $$beta$$.}
+\item{theta}{Vector. Length 2. The first argument corresponds to the xi parameter in the GPD distribution and
+the second argument corresponds to the beta parameter.}
 
-\item{tmp}{Dataframe. Two columns. First column is the data/observations. The second column is binary where 1
-means the observation is censored and 0 means the observation is not censored.}
+\item{tmp}{Dataframe. Two columns. First column are the observations. The second column is binary indicating
+which of the observations are censored.}
 }
 \value{
 Numeric. Corresponding to the maximum likelihood estimator based on the censored generalized Pareto

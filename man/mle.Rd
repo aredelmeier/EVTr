@@ -2,26 +2,45 @@
 % Please edit documentation in R/estimation.R
 \name{mle}
 \alias{mle}
-\title{A function to estimate the maximum likelihood estimator for a variety of methods.}
+\title{A function to estimate the maximum likelihood estimator for either the regular generalized Pareto
+distribution or the censored generalized Pareto distribution.}
 \usage{
-mle(data, method = c("MLE", "CensMLE"))
+mle(
+  data,
+  method = c("MLE", "CensMLE", "MLE_full", "CensMLE_full"),
+  threshold = NULL,
+  information = c("observed", "expected")
+)
 }
 \arguments{
-\item{data}{Dataframe. One column is called "Injury_Length" and corresponds to the observations.}
+\item{data}{Dataframe. One column is called "Injury_Length" and corresponds to the observations.
+If method is either "CensMLE" or "CensMLE_full", the second column must be a binary indicator of
+whether the injuries (the first column) are censored or not.}
 
-\item{method}{String. One of "MLE", "CensMLE", "MLE_full", or "CensMLE_full".}
+\item{method}{String. One of "MLE", "CensMLE", "MLE_full" or "CensMLE_full".}
+
+\item{threshold}{Numeric. (Optional). Used only when method = "MLE_full" or "CensMLE_full".
+This determines the exceedances to use when estimating the parameters of the generalzied Pareto
+distribution.}
+
+\item{information}{String. (Optional). Used only when method = "MLE_full" or "CensMLE_full".
+This determines the information criterion to use when optimizing.}
 }
 \value{
-Numeric. Corresponding to the maximum likelihood estimator based on one of the generalized Pareto distribution.
+Numeric. Corresponding to the maximum likelihood estimator based on one of the generalized
+Pareto distribution.
 }
 \description{
-A function to estimate the maximum likelihood estimator for a variety of methods.
+A function to estimate the maximum likelihood estimator for either the regular generalized Pareto
+distribution or the censored generalized Pareto distribution.
 }
 \examples{
 
 data <- data.frame(Injury_Length = rexp(10), Censored = rbinom(10, 1, 0.5))
 
-mle(data = data, method = "MLE")
+mle(data = data, method = "CensMLE")
+
+mle(data = data, method = "CensMLE", threshold = 0, information = "observed")
 }
 \author{
 Annabelle Redelmeier

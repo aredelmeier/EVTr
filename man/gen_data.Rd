@@ -2,7 +2,8 @@
 % Please edit documentation in R/gen_data.R
 \name{gen_data}
 \alias{gen_data}
-\title{Simulate injuries according to a generalized Pareto distribution and healthy periods according to a exponential distribution.
+\title{Simulate injuries according to a generalized Pareto distribution and healthy periods according to a exponential
+distribution.
 Based on a fixed parameter \code{censor}, some of the injuries and healthy periods will be censored based on the
 cummulative sum of the healthy and injury periods. Based on \code{specific}, certain observations will be returned.}
 \usage{
@@ -46,15 +47,16 @@ If \code{specific} = "delete_censored_obs", the first column in \code{data_retur
 to the length of the injury.
 
 The second column "ID" stands for the invididuals ID or identifier. "Censored" = 1 if the
-injury is censored before the entire injury is finished (in which case "Injury_Length" is the length of the injury until
-the censoring) and = 0 otherwise.
+injury is censored before the entire injury is finished (in which case "Injury_Length" is the length of the
+injury until the censoring) and = 0 otherwise.
 
-"Actual" indicates the length of the injury before it was censored. In other words, if there was no censoring, we would
-see the actual length of the injury.
+"Actual" indicates the length of the injury before it was censored. In other words, if there was no censoring,
+we would see the actual length of the injury.
 
-"Any_Injury_Censored" == 1 if the individual has had their last injury censored. Since all individuals are censored at one
-point, each individual while either have an injury censored or a healthy period censored. But since we don't care about
-modelling healthy periods, if the healthy period is censored, we will have full information on the injuries.
+"Any_Injury_Censored" == 1 if the individual has had their last injury censored. Since all individuals are censored
+at one point, each individual while either have an injury censored or a healthy period censored. But since we don't
+care about modelling healthy periods, if the healthy period is censored, we will have full information on the
+injuries.
 
 "Prop_of_injuries_censored" is the # injuries censored / # individuals (n).
 
@@ -67,16 +69,17 @@ If \code{specific} = "keep_censored_obs", the columns are the same.
 If \code{specific} = "keep_only_max_obs", the above columns all apply. A new column "delta" is:
 1 - (1 - Censored) * Any_Injury_Censored
 
-If \code{specific} = "max_excess", the above columns all apply.  In this dataframe, "Injury_Length" is the excess injury length
-above the threshold decided by \code{ne}. A new column "Injury_Length_before" is the original length of the injury (i.e
-threshold - Injury_Length).
+If \code{specific} = "max_excess", the above columns all apply.  In this dataframe, "Injury_Length" is the excess
+injury length above the threshold decided by \code{ne}. A new column "Injury_Length_before" is the original length
+of the injury (i.e threshold - Injury_Length).
 
 "Prop_of_obs_above_threshold" = # injuries >= threshold / total # of injuries.
 
 If \code{specific} = "excess", the columns are the same as "max_excess".
 }
 \description{
-Simulate injuries according to a generalized Pareto distribution and healthy periods according to a exponential distribution.
+Simulate injuries according to a generalized Pareto distribution and healthy periods according to a exponential
+distribution.
 Based on a fixed parameter \code{censor}, some of the injuries and healthy periods will be censored based on the
 cummulative sum of the healthy and injury periods. Based on \code{specific}, certain observations will be returned.
 }
