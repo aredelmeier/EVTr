@@ -1,0 +1,27 @@
+linters: with_defaults(
+    line_length_linter = lintr::line_length_linter(120),
+    object_name_linter = NULL,
+    object_usage_linter = NULL,
+    seq_linter = NULL
+  )
+exclusions: list(
+    "inst/scripts/old_scripts/ch3/Ch3Source_keep.R",
+    "inst/scripts/old_scripts/ch3/Sim_Study_March.R",
+    "inst/scripts/old_scripts/ch3/Sim_Study.R",
+    "inst/scripts/old_scripts/ch3/Source_both.R",
+    "inst/scripts/old_scripts/ch3/Source_delete.R",
+    "inst/scripts/old_scripts/ch3/Source_keep_max.R",
+    "inst/scripts/old_scripts/ch4/Ch4Source_keep.R",
+    "inst/scripts/old_scripts/ch4/Sim_Study_Censoring.R",
+    "man/excess.Rd",
+    "man/gen_data.Rd",
+    "man/mle_cens_gpd.Rd",
+    "man/mle_gpd.Rd",
+    "man/mle.Rd",
+    "man/negloglik_cens_gpd_full.Rd",
+    "man/negloglik_cens_gpd.Rd",
+    "man/negloglik_gpd_full.Rd",
+    "man/negloglik_gpd.Rd",
+    "man/simulation.Rd",
+    "vignettes/understanding_EVTr.Rmd"
+  )

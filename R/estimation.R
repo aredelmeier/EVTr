@@ -23,17 +23,17 @@ negloglik_gpd <- function(theta, tmp) {
   xi <- theta[1]
   beta <- theta[2]
   cond1 <- beta <= 0
-  cond2 <- (xi <= 0) && (max(tmp) >= (-beta/xi))
+  cond2 <- (xi <= 0) && (max(tmp) >= (- beta / xi))
   if (cond1 || cond2)
     f <- 1e+06
   else{
-    if (xi != 0){
-      y <- logb(1 + (xi * tmp)/beta)
-      y <- y/xi
+    if (xi != 0) {
+      y <- logb(1 + (xi * tmp) / beta)
+      y <- y / xi
       f <- length(tmp) * logb(beta) + (1 + xi) * sum(y)
     }
     else{
-      f <- sum(logb(beta) - tmp[,1]/beta)
+      f <- sum(logb(beta) - tmp[, 1] / beta)
     }
   }
   f
@@ -64,11 +64,11 @@ negloglik_cens_gpd <- function(theta, tmp) {
   xi <- theta[1]
   beta <- theta[2]
   cond1 <- beta <= 0
-  cond2 <- (xi <= 0) && (max(tmp[, 1]) >= (-beta / xi))
+  cond2 <- (xi <= 0) && (max(tmp[, 1]) >= (- beta / xi))
   if (cond1 || cond2)
     f <- 1e+06
   else {
-    if (xi!=0){
+    if (xi != 0) {
       y <- logb(1 + (xi * tmp[, 1]) / beta)
       y <- y / xi
       f <- sum((1 - tmp[, 2]) * (logb(beta) + (1 + xi) * y) + (tmp[, 2]) * y)
@@ -103,15 +103,18 @@ negloglik_gpd_full <- function(theta, ydata) {
 }
 
 
-#' The negative censored log-likelihood of the censored generalized Pareto distribution implemented by the \code{dGPD} R package.
+#' The negative censored log-likelihood of the censored generalized Pareto distribution implemented by the
+#' \code{dGPD} R package.
 #'
 #' @param theta Vector. Length 2. The first argument corresponds to $$xi$$ in the GPD distribution and the second
 #' argument corresponds to $$beta$$.
 #'
-#' @param ydata Dataframe. the first column corresponding to the data/observations. The second column corresponding to the
+#' @param ydata Dataframe. the first column corresponding to the data/observations. The second column
+#' corresponding to the
 #' binary column. 0 if the observation is not censored. 1 if the observation is censored.
 #'
-#' @return Numeric. Corresponding to the maximum likelihood estimator based on the generalized Pareto distribution.
+#' @return Numeric. Corresponding to the maximum likelihood estimator based on the generalized Pareto
+#' distribution.
 #'
 #' @export
 #'
@@ -127,12 +130,12 @@ negloglik_cens_gpd_full <- function(theta, ydata) {
   xi <- theta[1]
   beta <- theta[2]
   cond1 <- beta <= 0
-  cond2 <- (xi <= 0) && (max(ydata[,1]) >= (-beta/xi))
+  cond2 <- (xi <= 0) && (max(ydata[, 1]) >= (- beta / xi))
   if (cond1 || cond2)
     f <- 1e+06
   else {
-    y <- logb(1 + (xi * ydata[,1])/beta)
-    y <- y/xi
+    y <- logb(1 + (xi * ydata[, 1]) / beta)
+    y <- y / xi
     f <- sum((1 - ydata[, 2]) * (logb(beta) + (1 + xi) * y) + (ydata[, 2]) * y)
 
   }
@@ -143,7 +146,8 @@ negloglik_cens_gpd_full <- function(theta, ydata) {
 #'
 #' @param data Dataframe. One column is called "Injury_Length" and corresponds to the observations.
 
-#' @return Numeric. Corresponding to the maximum likelihood estimator based on the generalized Pareto distribution.
+#' @return Numeric. Corresponding to the maximum likelihood estimator based on the generalized Pareto
+#' distribution.
 #'
 #' @export
 #'
@@ -164,8 +168,8 @@ mle_gpd <- function(data) {
   xbar <- mean(injury)
   s2 <- var(injury)
 
-  xi0 <- -0.5 * (((xbar * xbar)/s2) - 1)
-  beta0 <- 0.5 * xbar * (((xbar * xbar)/s2) + 1)
+  xi0 <- -0.5 * (((xbar * xbar) / s2) - 1)
+  beta0 <- 0.5 * xbar * (((xbar * xbar) / s2) + 1)
   theta <- c(xi0, beta0)
 
 
@@ -173,12 +177,15 @@ mle_gpd <- function(data) {
   return(fit$par[1])
 }
 
-#' A function that calculates the maximum likelihood estimator based on the censored generalized Pareto distribution.
+#' A function that calculates the maximum likelihood estimator based on the censored generalized Pareto
+#' distribution.
 #'
-#' @param data Dataframe. One column is called "Injury_Length" and corresponds to the observations. One column called
-#' "Censored" of 0s and 1s. 0 indicates that the observation is not censored. 1 indicates the observation is censored.
-
-#' @return Numeric. Corresponding to the maximum likelihood estimator based on the censored generalized Pareto distribution.
+#' @param data Dataframe. One column is called "Injury_Length" and corresponds to the observations. One
+#' column called "Censored" of 0s and 1s. 0 indicates that the observation is not censored. 1 indicates the
+#' observation is censored.
+#'
+#' @return Numeric. Corresponding to the maximum likelihood estimator based on the censored generalized
+#' Pareto distribution.
 #'
 #' @export
 #'
@@ -202,8 +209,8 @@ mle_cens_gpd <- function(data) {
   xbar <- mean(injury)
   s2 <- var(injury)
 
-  xi0 <- -0.5 * (((xbar * xbar)/s2) - 1)
-  beta0 <- 0.5 * xbar * (((xbar * xbar)/s2) + 1)
+  xi0 <- -0.5 * (((xbar * xbar) / s2) - 1)
+  beta0 <- 0.5 * xbar * (((xbar * xbar) / s2) + 1)
   theta <- c(xi0, beta0)
 
   data <- cbind(injury, cens)
@@ -219,7 +226,8 @@ mle_cens_gpd <- function(data) {
 #'
 #' @param method String. One of "MLE", "CensMLE", "MLE_full", or "CensMLE_full".
 #'
-#' @return Numeric. Corresponding to the maximum likelihood estimator based on one of the generalized Pareto distribution.
+#' @return Numeric. Corresponding to the maximum likelihood estimator based on one of the generalized
+#' Pareto distribution.
 #'
 #' @export
 #'
@@ -233,7 +241,7 @@ mle_cens_gpd <- function(data) {
 
 mle <- function(data,
                 method = c("MLE",
-                           "CensMLE")){
+                           "CensMLE")) {
 
   method <- match.arg(method)
   if (method == "MLE") {

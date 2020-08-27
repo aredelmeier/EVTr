@@ -4,11 +4,12 @@ library(EVTr)
 context("test-helper_functions.R")
 
 # For using same Random number generator as CircelCI (R version 3.5.x)
-RNGversion(vstr = "3.5.0")
+# RNGversion(vstr = "3.5.0")
 
 test_that("Test functions in explanation.R", {
 
-  data <- data.frame(ID = c(rep(1, 3), rep(2, 2), rep(3, 4), 4), obs_id = c(1, 2, 3, 1, 2, 1, 2, 3, 4, 1), Injury_Length = rexp(10))
+  data <- data.frame(ID = c(rep(1, 3), rep(2, 2), rep(3, 4), 4), obs_id = c(1, 2, 3, 1, 2, 1, 2, 3, 4, 1),
+                     Injury_Length = rexp(10))
   data <- data.table(data)
   exc <- excess(data, ne = 1)
 

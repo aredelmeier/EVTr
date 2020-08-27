@@ -1,5 +1,6 @@
 
-#' Simulate injuries according to a generalized Pareto distribution and healthy periods according to a exponential distribution.
+#' Simulate injuries according to a generalized Pareto distribution and healthy periods according to a exponential
+#' distribution.
 #' Based on a fixed parameter \code{censor}, some of the injuries and healthy periods will be censored based on the
 #' cummulative sum of the healthy and injury periods. Based on \code{specific}, certain observations will be returned.
 #'
@@ -41,15 +42,16 @@
 #' to the length of the injury.
 #'
 #' The second column "ID" stands for the invididuals ID or identifier. "Censored" = 1 if the
-#' injury is censored before the entire injury is finished (in which case "Injury_Length" is the length of the injury until
-#' the censoring) and = 0 otherwise.
+#' injury is censored before the entire injury is finished (in which case "Injury_Length" is the length of the
+#' injury until the censoring) and = 0 otherwise.
 #'
-#' "Actual" indicates the length of the injury before it was censored. In other words, if there was no censoring, we would
-#' see the actual length of the injury.
+#' "Actual" indicates the length of the injury before it was censored. In other words, if there was no censoring,
+#' we would see the actual length of the injury.
 #'
-#' "Any_Injury_Censored" == 1 if the individual has had their last injury censored. Since all individuals are censored at one
-#' point, each individual while either have an injury censored or a healthy period censored. But since we don't care about
-#' modelling healthy periods, if the healthy period is censored, we will have full information on the injuries.
+#' "Any_Injury_Censored" == 1 if the individual has had their last injury censored. Since all individuals are censored
+#' at one point, each individual while either have an injury censored or a healthy period censored. But since we don't
+#' care about modelling healthy periods, if the healthy period is censored, we will have full information on the
+#' injuries.
 #'
 #' "Prop_of_injuries_censored" is the # injuries censored / # individuals (n).
 #'
@@ -62,9 +64,9 @@
 #' If \code{specific} = "keep_only_max_obs", the above columns all apply. A new column "delta" is:
 #' 1 - (1 - Censored) * Any_Injury_Censored
 #'
-#' If \code{specific} = "max_excess", the above columns all apply.  In this dataframe, "Injury_Length" is the excess injury length
-#' above the threshold decided by \code{ne}. A new column "Injury_Length_before" is the original length of the injury (i.e
-#' threshold - Injury_Length).
+#' If \code{specific} = "max_excess", the above columns all apply.  In this dataframe, "Injury_Length" is the excess
+#' injury length above the threshold decided by \code{ne}. A new column "Injury_Length_before" is the original length
+#' of the injury (i.e threshold - Injury_Length).
 #'
 #' "Prop_of_obs_above_threshold" = # injuries >= threshold / total # of injuries.
 #'
@@ -95,18 +97,18 @@
 #' ne = ne, specific = "excess")[]
 #'
 
-gen_data <- function (censor = NULL,
-                      xi,
-                      n,
-                      num_inj,
-                      rate_exp,
-                      ne = NULL,
-                      specific = c("delete_censored_obs",
-                                   "keep_censored_obs",
-                                   "keep_only_max_obs",
-                                   "max_excess",
-                                   "excess"),
-                      seed = 1) {
+gen_data <- function(censor = NULL,
+                     xi,
+                     n,
+                     num_inj,
+                     rate_exp,
+                     ne = NULL,
+                     specific = c("delete_censored_obs",
+                                  "keep_censored_obs",
+                                  "keep_only_max_obs",
+                                  "max_excess",
+                                  "excess"),
+                     seed = 1) {
 
   ID <- ave <- obs <- obs_id <- variable <- injury <- Censored <- csum <- lagged_censored <- NULL
   first_censored <- after_censored <- Censored_Length <- Injury_Length_with_censored <- NULL
@@ -117,7 +119,7 @@ gen_data <- function (censor = NULL,
 
   # Generate data
   Healthy <- matrix(rexp(n * num_inj, rate = rate_exp), nrow = n, ncol = num_inj)
-  Injured <- matrix(QRM::rGPD(n*num_inj, xi = xi), nrow = n, ncol = num_inj)
+  Injured <- matrix(QRM::rGPD(n * num_inj, xi = xi), nrow = n, ncol = num_inj)
 
   # Combine matrices
   df <- matrix(NA, nrow = n, ncol = 2 * num_inj)
@@ -172,7 +174,8 @@ gen_data <- function (censor = NULL,
   }
 
   Prop_injuries_censored <- nrow(data[injury == 1][first_censored == 1]) / n
-  Prop_of_ind_with_censored_injury <- nrow(data[injury == 1][first_censored == 1]) / nrow(data[injury == 1])
+  Prop_ind_with_censored_injury <- nrow(data[injury == 1][first_censored == 1]) /
+    nrow(data[injury == 1])
   # Prop_healthy_censored <- nrow(data[injury == 0][first_censored == 1]) / n
   # Prop_censored <- nrow(data[first_censored == 1]) / n
 
@@ -181,12 +184,12 @@ gen_data <- function (censor = NULL,
   Prop_max_censored <- nrow(tmp) / n
 
 
-  data[, 'Prop_of_injuries_censored' := Prop_injuries_censored]
-  data[, 'Prop_of_ind_with_censored_injury' := Prop_of_ind_with_censored_injury]
-  data[, 'Prop_maxima_censored' := Prop_max_censored]
+  data[, "Prop_of_injuries_censored" := Prop_injuries_censored]
+  data[, "Prop_of_ind_with_censored_injury" := Prop_ind_with_censored_injury]
+  data[, "Prop_maxima_censored" := Prop_max_censored]
 
-  #data[, 'Prop_of_healthy_censored' := Prop_healthy_censored]
-  #data[, 'Prop_of_injuries_and_healthy_censored' := Prop_censored]
+  # data[, 'Prop_of_healthy_censored' := Prop_healthy_censored]
+  # data[, 'Prop_of_injuries_and_healthy_censored' := Prop_censored]
 
   # Extract only injuries
   data <- data[injury == 1]
@@ -246,7 +249,7 @@ gen_data <- function (censor = NULL,
     data_return[, "Prop_maxima_above_thresh" := nrow(data_return) / n]
 
 
-    setcolorder(data_return, c("Injury_Length", "ID", "Censored", "Actual", "Any_Injury_Censored" ))
+    setcolorder(data_return, c("Injury_Length", "ID", "Censored", "Actual", "Any_Injury_Censored"))
     setkeyv(data_return, "ID")
 
     return(data_return)
@@ -264,8 +267,8 @@ gen_data <- function (censor = NULL,
   }
 }
 
-#' This function generates data according to \code{specific} method and then applies the maximum likelihood estimator (mle)
-#' based on \code{method}.
+#' This function generates data according to \code{specific} method and then applies the maximum likelihood
+#' estimator (mle) based on \code{method}.
 #'
 #' @param censor Integer. Where to censor observations.
 #'
@@ -285,7 +288,8 @@ gen_data <- function (censor = NULL,
 #'
 #' @param seed Numeric. Seed to set.
 #'
-#' @param method String. Corresponding to one of ""MLE", "CensMLE", "MLE_delete_censored", "N", "MLE_full" or "CensMLE_full".
+#' @param method String. Corresponding to one of ""MLE", "CensMLE", "MLE_delete_censored", "N", "MLE_full" or
+#' "CensMLE_full".
 #'
 #' @return Numeric. Corresponding to the maximum likelihood estimator based on \code{method}.
 #'
@@ -313,7 +317,7 @@ simulation <- function(censor = NULL,
                        ne = NULL,
                        specific,
                        seed,
-                       method){
+                       method) {
 
   full <- gen_data(censor = censor,
                    xi = xi,
@@ -326,5 +330,3 @@ simulation <- function(censor = NULL,
 
   mle(full, method = method)
 }
-
-

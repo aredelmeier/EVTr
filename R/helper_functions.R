@@ -19,7 +19,7 @@
 #' excess(data, ne = 1)
 
 
-excess <- function(data, ne){
+excess <- function(data, ne) {
 
   Injury_Length <- Injury_Length_before <- threshold <- NULL
 

@@ -4,7 +4,7 @@ library(EVTr)
 context("test-helper_functions.R")
 
 # For using same Random number generator as CircelCI (R version 3.5.x)
-RNGversion(vstr = "3.5.0")
+# RNGversion(vstr = "3.5.0")
 
 test_that("Test functions in gen_data.R", {
   censor <- 5
@@ -14,7 +14,8 @@ test_that("Test functions in gen_data.R", {
   rate_exp <- 1
   ne <- 5
 
-  data1 <- gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific = "delete_censored_obs")
+  data1 <- gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific =
+                      "delete_censored_obs")
 
   # No observations should be censored
   expect_true(all(data1$Censored == FALSE))
@@ -26,7 +27,8 @@ test_that("Test functions in gen_data.R", {
   data1[, num := .N, by = ID]
   expect_true(max(data1$num) <= num_inj)
 
-  data2 <- gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific = "keep_censored_obs")
+  data2 <- gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific =
+                      "keep_censored_obs")
 
   # more rows then the dt that removes the cesnored observations
   expect_gte(nrow(data2), nrow(data1))
@@ -40,7 +42,8 @@ test_that("Test functions in gen_data.R", {
   # all censored injuries must be less than the original injury lengths
   expect_true(all(data2$Actual >= data2$Injury_Length))
 
-  data3 <- gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific = "keep_only_max_obs")
+  data3 <- gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, specific =
+                      "keep_only_max_obs")
 
   # we extract one observation for each individual
   expect_true(nrow(data3) == n)
@@ -49,7 +52,8 @@ test_that("Test functions in gen_data.R", {
   expect_equal(sum(data3$Censored) / n, data3$Prop_maxima_censored[1])
 
 
-  data4 <- gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, ne = ne, specific = "max_excess")
+  data4 <- gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, ne = ne, specific =
+                      "max_excess")
 
   # we extract at most one observation for each individual
   expect_true(nrow(data4) <= n)
@@ -60,7 +64,8 @@ test_that("Test functions in gen_data.R", {
   # Original injuries longer than excesses
   expect_true(all(data4$Actual >= data4$Injury_Length))
 
-  data5 <- gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, ne = ne, specific = "excess")
+  data5 <- gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp, ne = ne, specific =
+                      "excess")
 
   # more rows when you don't take the maxima
   expect_true(nrow(data5) >= nrow(data4))

@@ -4,7 +4,7 @@ library(EVTr)
 context("test-estimation.R")
 
 # For using same Random number generator as CircelCI (R version 3.5.x)
-RNGversion(vstr = "3.5.0")
+# RNGversion(vstr = "3.5.0")
 
 test_that("Test mle function in estimation.R", {
 
