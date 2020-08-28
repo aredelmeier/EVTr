@@ -59,9 +59,6 @@ And the development version from [GitHub](https://github.com/) with:
 devtools::install_github("aredelmeier/EVTr")
 ```
 
-You can always check out the latest version of the vignette
-[here](https://norskregnesentral.github.io/shapr/articles/understanding_shapr.html).
-
 ## Example
 
 This is a basic example which shows you how to solve a common problem:

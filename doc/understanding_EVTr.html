@@ -12,7 +12,7 @@
 
 
 
-<title>Using EVTr: Using extreme value theory to estimate long lasting injuries</title>
+<title>EVTr: Using extreme value theory to estimate long lasting injuries</title>
 
 
 
@@ -297,18 +297,104 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Using EVTr: Using extreme value theory to estimate long lasting injuries</h1>
+<h1 class="title toc-ignore">EVTr: Using extreme value theory to estimate long lasting injuries</h1>
 
 
 
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(EVTr)</a></code></pre></div>
-<p>Athletes or individuals can either be injured or healthy. We assume that for our study, individuals start healthy (or in a healthy period). Then they remain healthy for a while until they switch to being injured (or in an injured state). Individuals continue alternating between these two states until our study is over (or the censoring point). Then we can use various estimation techniques to estimate the parameters of these injury periods. Does censoring matter? Can we assume the censored injury was not censored and use MLE normally? Will the censored injury be the longest injury and therefore should a censoring indicator be taken into account?</p>
-<p>This package accompanies the masters thesis which can be found: <a href="https://escholarship.mcgill.ca/concern/theses/fn107132j" class="uri">https://escholarship.mcgill.ca/concern/theses/fn107132j</a>. Generating data can be found in the “gen_data.R”. Estimating the parameters is done in “estimation.R”. The different simulation studies can be found in inst/scripts although a lot of the parameters have been changed since the original thesis to keep the running time minimal. The hope is that eventually the masters thesis will be able to be reproduced through various simple scripts - but in August 2020 this is not done completed. There was a real data example in the thesis which, due to privacy rules, is not included in EVTr.</p>
-<p>The main extreme value theory references are (Coles, 2001), (McNeil et al., 2005), and (Embrechts et al., 1997).</p>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Injured athletes or performers can cost teams, sports associations, and coaches a lot of money. Therefore, it can be useful to predict the number of seriously injured athletes and the length of these injuries at the start of a season or year. It turns out that individuals (especially professional athletes) are injured all the time and often get better within the day or the week. However, we are interested in <em>long term injuries</em> that last a season or many years since these are the most costly. The problem is that these types of injuries happen the least. Similar to massive earthquakes and stock market crashes, how do we model these types of scarce and infrequent injuries?</p>
+<p>We use extreme value theory - and specifically the peaks-over-threshold method - to model this type of process. To begin, we do various simulation studies to study how various distributional assumptions, censoring, and data manipulations can affect estimation. We assume that individuals live in two states - they can either be injured or healthy. Individuals start healthy (or in a healthy state) and then remain healthy for a while until they switch to being injured (or in an injured state). Individuals continue alternating between these two states until our study is over (or <em>censoring</em> occurs). Then we use extreme value theory to study these injury periods. Specifically, we ask</p>
+<ul>
+<li>Does censoring matter? Can we assume the censored injury was not censored and use MLE normally?</li>
+<li>Will the censored injury be the longest injury and therefore should censoring be taken into account?</li>
+<li>What is the proportion of injuries being censored as appose to healthy periods? Will the distribution of the injuries/healthy periods play a roll in this proportion?</li>
+</ul>
+<p>This package accompanies a masters thesis called “Using extreme value theory to model severe injuries of circus artists” which can be found: <a href="https://escholarship.mcgill.ca/concern/theses/fn107132j" class="uri">https://escholarship.mcgill.ca/concern/theses/fn107132j</a>.</p>
+</div>
+<div id="background" class="section level2">
+<h2>Background</h2>
+<p>The main extreme value theory references are (Coles, 2001), (McNeil et al., 2005), and (Embrechts et al., 1997). The entire background can be found in the thesis.</p>
+<div id="generalized-extreme-value-distribution" class="section level3">
+<h3>Generalized extreme value distribution</h3>
+<p>The distribution function of the (standard) generalized extreme value (GEV) distribution is given by <span class="math display">\[
+H_\xi(x) = 
+\begin{cases}
+\exp(-(1+ \xi x)^{-1/\xi}), &amp; \xi \ne 0;\\
+\exp(-e^{-x}), &amp; \xi = 0
+\end{cases}
+\]</span> where <span class="math inline">\(1 + \xi x &gt;0\)</span> and <span class="math inline">\(\xi\)</span> is the so-called shape parameter.</p>
+<p>The GEV distributions comprise a <em>family</em> of distributions indexed by <span class="math inline">\(\xi\)</span>. Depending on the sign of <span class="math inline">\(\xi\)</span>, <span class="math inline">\(H_\xi\)</span> takes on a named distribution. Specifically,</p>
+<ul>
+<li>if <span class="math inline">\(\xi &gt; 0\)</span>, <span class="math inline">\(H_\xi(x)\)</span> is the <em>Frechet</em> distribution;</li>
+<li>if <span class="math inline">\(\xi &lt; 0\)</span>, <span class="math inline">\(H_\xi(x)\)</span> is the <em>Weibull</em> distribution; and</li>
+<li>if <span class="math inline">\(\xi = 0\)</span>, <span class="math inline">\(H_\xi(x)\)</span> is the <em>Gumbel</em> distribution.</li>
+</ul>
+<p>The three distributions differ in their tail behaviour. Both the Frechet and Gumbel distributions have infinite upper endpoints, <span class="math inline">\(x_F\)</span>; however, the Frechet tail decays polynomially whereas the Gumbel tail decays exponentially. The Weibull distribution has a finite upper endpoint, <span class="math inline">\(x_F\)</span>.</p>
+<p>The Fisher-Tippett, Gnedenko theorem states that if <span class="math inline">\(M_n = \max(X_1, \dots, X_n)\)</span>, where <span class="math inline">\(X_1, \dots, X_n\)</span> are iid data from some unknown distribution <span class="math inline">\(F\)</span>, then, if there exist sequences of constants <span class="math inline">\(\{ c_n &gt; 0\}\)</span> and <span class="math inline">\(\{d_n\}\)</span> such that <span class="math display">\[
+P\{(M_n - d_n)/c_n \le x\} \rightarrow H(x)
+\]</span> as <span class="math inline">\(n \rightarrow \infty\)</span> for a non-degenerate distribution <span class="math inline">\(H(x)\)</span>, then <span class="math inline">\(H\)</span> must be a distribution of type <span class="math inline">\(H_\xi\)</span>, i.e <span class="math inline">\(H(x) = H_\xi(x)\)</span>, where <span class="math inline">\(H_\xi(x)\)</span> is a generalized extreme value distribution.</p>
+<p>In other words, if we have some data and can find a way to block it and take the maximum of each block, the distribution of these maxima will be GEV distributed as the number of blocks goes to infinity.</p>
+<p>An important <strong>definition</strong> for later: If <span class="math display">\[
+\lim_{n \rightarrow \infty} P((M_n - d_n)/c_n \le x) = \lim_{n \rightarrow \infty} F^n(c_nx + d_n) = H_\xi(x) 
+\]</span> for any <span class="math inline">\(x \in \mathbf{R}\)</span> and sequences of constants <span class="math inline">\(\{c_n &gt; 0\}\)</span> and <span class="math inline">\(\{d_n \}\)</span>, then we say <span class="math inline">\(F\)</span> belongs to the maximum domain of attraction of <span class="math inline">\(H_\xi\)</span>, written <span class="math inline">\(F \in \text{MDA}(H_\xi)\)</span>.</p>
+<p>This means that if the limit of the normalized maxima tend to a GEV distribution, we say the underlying distribution <span class="math inline">\(F\)</span> belongs to the <strong>maximum domain of attraction</strong> of the GEV distribution, <span class="math inline">\(H\)</span>. It turns out that most continuous distributions belong to <span class="math inline">\(\text{MDA}(H_\xi)\)</span>, whereas most discrete distributions do not.</p>
+<p>Finally, the standard likelihood of the GEV is:</p>
+<p><span class="math display">\[
+\ell(\mu, \sigma, \xi; m_{n1}, \dots, m_{nm}) = -m \log \sigma - \bigg(1 + \frac{1}{\xi}\bigg)\sum_{i=1}^m \log\bigg[1 + \xi \bigg(\frac{m_{ni} - \mu}{\sigma}\bigg)\bigg] \\
+-\sum_{i=1}^m \bigg[1 + \xi \bigg(\frac{m_{ni} - \mu}{\sigma}\bigg)\bigg]^{-1/\xi}.
+\]</span></p>
+</div>
+<div id="generalized-pareto-distribution" class="section level3">
+<h3>Generalized Pareto distribution</h3>
+<p>Assume that <span class="math inline">\(X_1, X_2, \dots\)</span> is a sequence of iid rvs with continuous distribution <span class="math inline">\(F\)</span>. Then an  is defined as any point <span class="math inline">\(X_i &gt; u\)</span> and the  is the value <span class="math inline">\(X_i - u\)</span> given that <span class="math inline">\(X_i &gt; u\)</span>. The  method is based on characterizating the limiting distribution of the conditional excesses (<span class="math inline">\(X_i - u|X_i &gt; u\)</span>) above the threshold <span class="math inline">\(u\)</span>.</p>
+<p>The distribution of the generalized Pareto (GP) distribution is given by <span class="math display">\[
+G_{\xi, \beta}(x) =
+\begin{cases}
+1 - (1 + \xi x /\beta)^{-1/\xi}, &amp; \xi \ne 0;\\
+1 - \exp(-x/\beta), &amp; \xi = 0,
+\end{cases}
+\]</span></p>
+<p>where <span class="math inline">\(\beta &gt; 0\)</span>, and <span class="math inline">\(x \ge 0\)</span> when <span class="math inline">\(\xi \ge 0\)</span> and <span class="math inline">\(0 \le x \le -\beta/\xi\)</span> when <span class="math inline">\(\xi &lt; 0\)</span>. The parameters <span class="math inline">\(\xi\)</span> and <span class="math inline">\(\beta\)</span> are the so-called <em>shape</em> and <em>scale</em> parameters, respectively.</p>
+<p>The GP distribution takes on a named distribution depending on the sign of <span class="math inline">\(\xi\)</span>. Specifically,</p>
+<ul>
+<li>if <span class="math inline">\(\xi &gt; 0\)</span>, <span class="math inline">\(G_{\xi, \beta}(x)\)</span> is an <em>ordinary Pareto</em> distribution with <span class="math inline">\(\alpha = 1/\xi\)</span> and <span class="math inline">\(\kappa = \beta/\xi\)</span>;</li>
+<li>if <span class="math inline">\(\xi &lt; 0\)</span>, <span class="math inline">\(G_{\xi, \beta}(x)\)</span> is a <em>Pareto type II</em> distribution; and</li>
+<li>if <span class="math inline">\(\xi = 0\)</span>, <span class="math inline">\(G_{\xi, \beta}(x)\)</span> is an <em>exponential</em> distribution.</li>
+</ul>
+<p>If <span class="math inline">\(\xi &lt; 0\)</span> the distribution has an upper bound of <span class="math inline">\(u - \beta/\xi\)</span>; if <span class="math inline">\(\xi \ge 0\)</span>, the distribution has no upper limit.</p>
+<p>We also define the <strong>excess distribution</strong>: Let <span class="math inline">\(X\)</span> be a rv with df <span class="math inline">\(F\)</span>. The excess distribution over the threshold <span class="math inline">\(u\)</span> has df <span class="math display">\[
+F_u(x) = P(X - u \le x | X &gt; u).
+\]</span></p>
+<p>The GP distribution has all sorts of nice properties. For example, <span class="math display">\[
+G_{\xi, \beta} \in \text{MDA}(H_\xi)
+\]</span> for all <span class="math inline">\(\xi \in \mathbf{R}\)</span> and <span class="math inline">\(\beta &gt;0\)</span>. In other words, the GP distribution belongs to the maximum domain of attraction of the GEV distribution.</p>
+<p>In addition, if we have some data that follows a <span class="math inline">\(GP\)</span> distribution with shape parameter <span class="math inline">\(\xi \ne 0\)</span> and scale parameter <span class="math inline">\(\beta\)</span>, the excess distribution over the threshold <span class="math inline">\(u\)</span> remains a GP distribution with the same shape parameter, <span class="math inline">\(\xi\)</span>, but with an updated scaling parameter, <span class="math inline">\(\beta(u)\)</span>, that grows linearly with <span class="math inline">\(u\)</span>.</p>
+<p>Finally, the main theorem (of (Pickands, Balkema-de Haan)):</p>
+<p>We can find a function <span class="math inline">\(\beta(u)\)</span> such that <span class="math display">\[
+\lim_{u \rightarrow x_F} \underset{0 \le x &lt; x_F - u}{\sup}|F_u(x) - G_{\xi, \beta(u)}(x)| = 0
+\]</span> if and only if <span class="math inline">\(F \in \text{MDA}(H_\xi)\)</span>, <span class="math inline">\(\xi \in \mathbf{R}\)</span>.</p>
+<p>In other words, if our underlying distribution <span class="math inline">\(F\)</span> is in the maximum domain of attraction of the GEV distribution, the excess distribution will converge to the GP distribution as the threshold <span class="math inline">\(u\)</span> goes to infinity. <strong>This is very powerful!</strong> This means that if we have (almost any) continuous underlying distribution and our data is iid, the exceedances for a given threshold will be generalized Pareto distributed. Given some extreme data, we can estimate the GP parameters and then use these to determine facts about our data or estimate the number of extremes in the following year or period.</p>
+<p>To model threshold exceedances, suppose that we have iid data <span class="math inline">\(X_1, X_2, \dots\)</span> from some continuous distribution <span class="math inline">\(F\)</span>. Then the theory states that if we choose a threshold <span class="math inline">\(u\)</span> large enough, the distribution of <span class="math inline">\(Y_i = X_i - u\)</span> given <span class="math inline">\(X_i &gt; u\)</span> will be approximately generalized Pareto, provided <span class="math inline">\(F \in \text{MDA}(H_\xi)\)</span>. We can draw inference from these excesses by estimating the parameters of the GP distribution using standard maximum likelihood methods. To do so, first, rewrite the variables that lie above <span class="math inline">\(u\)</span> as <span class="math inline">\(\tilde{X}_1, \dots, \tilde{X}_{N_u}\)</span> (where <span class="math inline">\(N_u\)</span> is the random variable denoting the number of data points greater than <span class="math inline">\(u\)</span>) and the excesses above <span class="math inline">\(u\)</span> as <span class="math inline">\(Y_i = \tilde{X}_i - u\)</span>, for <span class="math inline">\(i = 1, \dots, N_u\)</span>. Then, the parameters of the GP distribution can be estimated by fitting the <span class="math inline">\(Y_i\)</span> to the GP likelihood.</p>
+<p>Assuming that <span class="math inline">\(Y_1, \dots, Y_{n_u}\)</span> are iid GP rvs with parameters <span class="math inline">\(\xi\)</span> and <span class="math inline">\(\beta\)</span>, (and <span class="math inline">\(n_u\)</span> is known), the log-likelihood function for <span class="math inline">\(\xi\)</span> and <span class="math inline">\(\beta\)</span> when <span class="math inline">\(\xi \ne 0\)</span> is</p>
+<p><span class="math display">\[
+\ell(\xi, \beta;y_1, \dots, y_{n_u} ) = -n_u \log \beta - \bigg(1 + \frac{1}{\xi} \bigg)\sum_{i=1}^{n_u} \log \bigg(1 + \xi \frac{y_i}{\beta} \bigg).
+\]</span></p>
+</div>
+</div>
 <div id="generating-data" class="section level2">
 <h2>Generating data</h2>
-<p>Generating data can be done using the following where ‘censor’ stands for the censoring time, ‘xi’ the <span class="math display">\[xi\]</span> parameter in the generalized Pareto distribution, ‘n’ is the number of individuals or athletes in the study, ‘num_inj’ is the number of injuries each will have (we never witness all of these injuries unless ‘censor’ = NULL or a very large number), and ‘rate_exp’ is the rate parameter for the non-injury periods. The parameter ‘ne’ is only used when using one of the last two method (either ‘max_excess’ or ‘excess’). More on this below.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">gen_data</span>(<span class="dt">censor =</span> <span class="dv">10</span>,</a>
+<p>Here we show the main function of EVTr. Generating data can be done using gen_data() where:</p>
+<ul>
+<li>‘censor’ stands for the censoring time;</li>
+<li>‘xi’ the <span class="math inline">\(xi\)</span> parameter in the generalized Pareto distribution;</li>
+<li>‘n’ the number of individuals or athletes in the study;</li>
+<li>‘num_inj’ the number of injuries each will have (we never witness all of these injuries unless ‘censor’ = NULL or a very large number); and</li>
+<li>‘rate_exp’ the rate parameter for the non-injury periods.</li>
+<li>The parameter ‘ne’ is only used when using one of the last two method (either ‘max_excess’ or ‘excess’). More on this below.</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(EVTr)</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">df &lt;-<span class="st"> </span><span class="kw">gen_data</span>(<span class="dt">censor =</span> <span class="dv">10</span>,</a>
 <a class="sourceLine" id="cb2-2" data-line-number="2">         <span class="dt">xi =</span> <span class="dv">1</span>,</a>
 <a class="sourceLine" id="cb2-3" data-line-number="3">         <span class="dt">n =</span> <span class="dv">5</span>,</a>
 <a class="sourceLine" id="cb2-4" data-line-number="4">         <span class="dt">num_inj =</span> <span class="dv">5</span>,</a>
@@ -316,68 +402,76 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <a class="sourceLine" id="cb2-6" data-line-number="6">         <span class="dt">ne =</span> <span class="ot">NULL</span>,</a>
 <a class="sourceLine" id="cb2-7" data-line-number="7">         <span class="dt">specific =</span> <span class="kw">c</span>(<span class="st">&quot;delete_censored_obs&quot;</span>),</a>
 <a class="sourceLine" id="cb2-8" data-line-number="8">         <span class="dt">seed =</span> <span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb2-9" data-line-number="9"><span class="co">#&gt;     Injury_Length ID Censored     Actual Any_Injury_Censored</span></a>
-<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="co">#&gt;  1:    1.12639089  1        0 1.12639089                   1</span></a>
-<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="co">#&gt;  2:    2.25448324  1        0 2.25448324                   1</span></a>
-<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="co">#&gt;  3:    0.07605451  1        0 0.07605451                   1</span></a>
-<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="co">#&gt;  4:    3.74735146  2        0 3.74735146                   1</span></a>
-<a class="sourceLine" id="cb2-14" data-line-number="14"><span class="co">#&gt;  5:    0.91431386  2        0 0.91431386                   1</span></a>
-<a class="sourceLine" id="cb2-15" data-line-number="15"><span class="co">#&gt;  6:    0.11045244  2        0 0.11045244                   1</span></a>
-<a class="sourceLine" id="cb2-16" data-line-number="16"><span class="co">#&gt;  7:    0.02388855  3        0 0.02388855                   1</span></a>
-<a class="sourceLine" id="cb2-17" data-line-number="17"><span class="co">#&gt;  8:    6.20510289  3        0 6.20510289                   1</span></a>
-<a class="sourceLine" id="cb2-18" data-line-number="18"><span class="co">#&gt;  9:    0.46256928  3        0 0.46256928                   1</span></a>
-<a class="sourceLine" id="cb2-19" data-line-number="19"><span class="co">#&gt; 10:    0.41563530  3        0 0.41563530                   1</span></a>
-<a class="sourceLine" id="cb2-20" data-line-number="20"><span class="co">#&gt; 11:    0.91288736  4        0 0.91288736                   0</span></a>
-<a class="sourceLine" id="cb2-21" data-line-number="21"><span class="co">#&gt; 12:    0.77966694  4        0 0.77966694                   0</span></a>
-<a class="sourceLine" id="cb2-22" data-line-number="22"><span class="co">#&gt; 13:    1.07742247  4        0 1.07742247                   0</span></a>
-<a class="sourceLine" id="cb2-23" data-line-number="23"><span class="co">#&gt; 14:    0.84865343  4        0 0.84865343                   0</span></a>
-<a class="sourceLine" id="cb2-24" data-line-number="24"><span class="co">#&gt; 15:    2.73571656  5        0 2.73571656                   0</span></a>
-<a class="sourceLine" id="cb2-25" data-line-number="25"><span class="co">#&gt; 16:    0.32414777  5        0 0.32414777                   0</span></a>
-<a class="sourceLine" id="cb2-26" data-line-number="26"><span class="co">#&gt; 17:    1.95862432  5        0 1.95862432                   0</span></a>
-<a class="sourceLine" id="cb2-27" data-line-number="27"><span class="co">#&gt; 18:    0.49789099  5        0 0.49789099                   0</span></a>
-<a class="sourceLine" id="cb2-28" data-line-number="28"><span class="co">#&gt; 19:    0.09199741  5        0 0.09199741                   0</span></a>
-<a class="sourceLine" id="cb2-29" data-line-number="29"><span class="co">#&gt;     Prop_of_injuries_censored Prop_of_ind_with_censored_injury</span></a>
-<a class="sourceLine" id="cb2-30" data-line-number="30"><span class="co">#&gt;  1:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-31" data-line-number="31"><span class="co">#&gt;  2:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-32" data-line-number="32"><span class="co">#&gt;  3:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-33" data-line-number="33"><span class="co">#&gt;  4:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-34" data-line-number="34"><span class="co">#&gt;  5:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-35" data-line-number="35"><span class="co">#&gt;  6:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-36" data-line-number="36"><span class="co">#&gt;  7:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-37" data-line-number="37"><span class="co">#&gt;  8:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-38" data-line-number="38"><span class="co">#&gt;  9:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-39" data-line-number="39"><span class="co">#&gt; 10:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-40" data-line-number="40"><span class="co">#&gt; 11:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-41" data-line-number="41"><span class="co">#&gt; 12:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-42" data-line-number="42"><span class="co">#&gt; 13:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-43" data-line-number="43"><span class="co">#&gt; 14:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-44" data-line-number="44"><span class="co">#&gt; 15:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-45" data-line-number="45"><span class="co">#&gt; 16:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-46" data-line-number="46"><span class="co">#&gt; 17:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-47" data-line-number="47"><span class="co">#&gt; 18:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-48" data-line-number="48"><span class="co">#&gt; 19:                       0.6                        0.1363636</span></a>
-<a class="sourceLine" id="cb2-49" data-line-number="49"><span class="co">#&gt;     Prop_maxima_censored</span></a>
-<a class="sourceLine" id="cb2-50" data-line-number="50"><span class="co">#&gt;  1:                    0</span></a>
-<a class="sourceLine" id="cb2-51" data-line-number="51"><span class="co">#&gt;  2:                    0</span></a>
-<a class="sourceLine" id="cb2-52" data-line-number="52"><span class="co">#&gt;  3:                    0</span></a>
-<a class="sourceLine" id="cb2-53" data-line-number="53"><span class="co">#&gt;  4:                    0</span></a>
-<a class="sourceLine" id="cb2-54" data-line-number="54"><span class="co">#&gt;  5:                    0</span></a>
-<a class="sourceLine" id="cb2-55" data-line-number="55"><span class="co">#&gt;  6:                    0</span></a>
-<a class="sourceLine" id="cb2-56" data-line-number="56"><span class="co">#&gt;  7:                    0</span></a>
-<a class="sourceLine" id="cb2-57" data-line-number="57"><span class="co">#&gt;  8:                    0</span></a>
-<a class="sourceLine" id="cb2-58" data-line-number="58"><span class="co">#&gt;  9:                    0</span></a>
-<a class="sourceLine" id="cb2-59" data-line-number="59"><span class="co">#&gt; 10:                    0</span></a>
-<a class="sourceLine" id="cb2-60" data-line-number="60"><span class="co">#&gt; 11:                    0</span></a>
-<a class="sourceLine" id="cb2-61" data-line-number="61"><span class="co">#&gt; 12:                    0</span></a>
-<a class="sourceLine" id="cb2-62" data-line-number="62"><span class="co">#&gt; 13:                    0</span></a>
-<a class="sourceLine" id="cb2-63" data-line-number="63"><span class="co">#&gt; 14:                    0</span></a>
-<a class="sourceLine" id="cb2-64" data-line-number="64"><span class="co">#&gt; 15:                    0</span></a>
-<a class="sourceLine" id="cb2-65" data-line-number="65"><span class="co">#&gt; 16:                    0</span></a>
-<a class="sourceLine" id="cb2-66" data-line-number="66"><span class="co">#&gt; 17:                    0</span></a>
-<a class="sourceLine" id="cb2-67" data-line-number="67"><span class="co">#&gt; 18:                    0</span></a>
-<a class="sourceLine" id="cb2-68" data-line-number="68"><span class="co">#&gt; 19:                    0</span></a></code></pre></div>
-<p>So this function generates data, assigns an ID and discloses if the injury was censored or not. Although the healthy periods are not shown in the table, we can assume that after the injury period is over, a healthy period begins. If the injury was censored, the ‘Actual’ column discloses the length of the actual injury (if we had an oracle, for example).</p>
-<p>The  parameter can take one of five options: e longest injury (censored or not censored), then #’ calculates the threshold based on  (number of exceedances above the threshold). Finally returns only #’ the excess above this given threshold. #’ : simulates data, censors, then calculates the threshold based on  (number of exceedances above #’ the threshold). Finally returns only the excess above this given threshold.</p>
+<a class="sourceLine" id="cb2-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="kw">head</span>(df, <span class="dv">6</span>)</a>
+<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="co">#&gt;    Injury_Length ID Censored     Actual Any_Injury_Censored</span></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="co">#&gt; 1:    1.12639089  1        0 1.12639089                   1</span></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="co">#&gt; 2:    2.25448324  1        0 2.25448324                   1</span></a>
+<a class="sourceLine" id="cb2-14" data-line-number="14"><span class="co">#&gt; 3:    0.07605451  1        0 0.07605451                   1</span></a>
+<a class="sourceLine" id="cb2-15" data-line-number="15"><span class="co">#&gt; 4:    3.74735146  2        0 3.74735146                   1</span></a>
+<a class="sourceLine" id="cb2-16" data-line-number="16"><span class="co">#&gt; 5:    0.91431386  2        0 0.91431386                   1</span></a>
+<a class="sourceLine" id="cb2-17" data-line-number="17"><span class="co">#&gt; 6:    0.11045244  2        0 0.11045244                   1</span></a>
+<a class="sourceLine" id="cb2-18" data-line-number="18"><span class="co">#&gt;    Prop_of_injuries_censored Prop_of_ind_with_censored_injury</span></a>
+<a class="sourceLine" id="cb2-19" data-line-number="19"><span class="co">#&gt; 1:                       0.6                        0.1363636</span></a>
+<a class="sourceLine" id="cb2-20" data-line-number="20"><span class="co">#&gt; 2:                       0.6                        0.1363636</span></a>
+<a class="sourceLine" id="cb2-21" data-line-number="21"><span class="co">#&gt; 3:                       0.6                        0.1363636</span></a>
+<a class="sourceLine" id="cb2-22" data-line-number="22"><span class="co">#&gt; 4:                       0.6                        0.1363636</span></a>
+<a class="sourceLine" id="cb2-23" data-line-number="23"><span class="co">#&gt; 5:                       0.6                        0.1363636</span></a>
+<a class="sourceLine" id="cb2-24" data-line-number="24"><span class="co">#&gt; 6:                       0.6                        0.1363636</span></a>
+<a class="sourceLine" id="cb2-25" data-line-number="25"><span class="co">#&gt;    Prop_maxima_censored</span></a>
+<a class="sourceLine" id="cb2-26" data-line-number="26"><span class="co">#&gt; 1:                    0</span></a>
+<a class="sourceLine" id="cb2-27" data-line-number="27"><span class="co">#&gt; 2:                    0</span></a>
+<a class="sourceLine" id="cb2-28" data-line-number="28"><span class="co">#&gt; 3:                    0</span></a>
+<a class="sourceLine" id="cb2-29" data-line-number="29"><span class="co">#&gt; 4:                    0</span></a>
+<a class="sourceLine" id="cb2-30" data-line-number="30"><span class="co">#&gt; 5:                    0</span></a>
+<a class="sourceLine" id="cb2-31" data-line-number="31"><span class="co">#&gt; 6:                    0</span></a></code></pre></div>
+<p>This function generates data (‘Injury_Length’), assigns an ID for each individual and discloses if the injury was censored or not. Although the healthy periods are not shown in the table, we can assume that after the injury period is over, a healthy period begins. If the injury was censored, the ‘Actual’ column discloses the length of the actual injury (if we had an oracle, for example). In addition,</p>
+<ul>
+<li>‘Prop_of_injuries_censored’ is the number of injuries censored divided by the number of individuals (‘n’).</li>
+<li>‘Prop_of_ind_with_censored_injury’ is the number of injuries censored divided by the total number of injuries.</li>
+<li>‘Prop_max_censored’ is the number of individuals where the censored injury is the individual’s longest injury divided by the number of individuals (n).</li>
+</ul>
+<p>The <strong>specific</strong> parameter can take one of five options:</p>
+<ul>
+<li><strong>delete_censored_obs</strong>: simulates data, censors the observations, but only returns the fully observed (injury) periods.</li>
+<li><strong>keep_censored_obs</strong>: simulates data, censors the observations, and returns all (injury) periods.</li>
+<li><strong>keep_only_max_obs</strong>: simulates data, censors, returns only the longest injury (censored or not censored) for each individual.</li>
+<li><strong>max_excess</strong>: simulates data, censors, calculates the longest injury (censored or not censored), then calculates the threshold based on  (number of exceedances above the threshold). Finally returns only the excess above this given threshold.</li>
+<li><strong>excess</strong>: simulates data, censors, then calculates the threshold based on  (number of exceedances above the threshold). Finally returns only the excess above this given threshold.</li>
+</ul>
+<p>In summary, we always generate/simulate data in the same way but then return various forms of the data (just the not censored observations, all the data, just the maxima, just the exceedances of the maxima, and just the exceedances above a threshold).</p>
+</div>
+<div id="estimation" class="section level2">
+<h2>Estimation</h2>
+<p>Estimating the parameters of the generalized Pareto distribution is done using mle(). There are two main estimation methods: the regular maximum likelihood estimator under the generalized Pareto distribution assumption and the <em>censored</em> version of the generalized Pareto distribution. The log-likelihood of the GP distribution is shown above.</p>
+<p>We estimate using the ‘mle’ function:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="co"># non-censored MLE</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="kw">mle</span>(<span class="dt">data =</span> df, <span class="dt">method =</span> <span class="st">&quot;MLE&quot;</span>)</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="co">#&gt; [1] 0.2191271</span></a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># censored MLE</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="kw">mle</span>(<span class="dt">data =</span> df, <span class="dt">method =</span> <span class="st">&quot;CensMLE&quot;</span>)</a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="co">#&gt; [1] 0.2191271</span></a></code></pre></div>
+<p>Recall that since none of the injuries are censored (we removed all of these using ‘specific’ = “delete_censored_obs”), these MLE estimates are the same. What if we don’t delete the estimates?</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="co"># non-censored MLE</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">df_censored &lt;-<span class="st"> </span><span class="kw">gen_data</span>(<span class="dt">censor =</span> <span class="dv">10</span>,</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">         <span class="dt">xi =</span> <span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">         <span class="dt">n =</span> <span class="dv">5</span>,</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">         <span class="dt">num_inj =</span> <span class="dv">5</span>,</a>
+<a class="sourceLine" id="cb5-6" data-line-number="6">         <span class="dt">rate_exp =</span> <span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb5-7" data-line-number="7">         <span class="dt">ne =</span> <span class="ot">NULL</span>,</a>
+<a class="sourceLine" id="cb5-8" data-line-number="8">         <span class="dt">specific =</span> <span class="kw">c</span>(<span class="st">&quot;keep_censored_obs&quot;</span>),</a>
+<a class="sourceLine" id="cb5-9" data-line-number="9">         <span class="dt">seed =</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb5-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb5-11" data-line-number="11"><span class="kw">mle</span>(<span class="dt">data =</span> df_censored, <span class="dt">method =</span> <span class="st">&quot;MLE&quot;</span>)</a>
+<a class="sourceLine" id="cb5-12" data-line-number="12"><span class="co">#&gt; [1] 0.3445508</span></a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="co"># censored MLE</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="kw">mle</span>(<span class="dt">data =</span> df_censored, <span class="dt">method =</span> <span class="st">&quot;CensMLE&quot;</span>)</a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="co">#&gt; [1] 0.1810038</span></a></code></pre></div>
+<p>Now we do not get the same MLE.</p>
+</div>
+<div id="simulation-studies" class="section level2">
+<h2>Simulation studies</h2>
+<p>The different simulation studies can be found in inst/scripts although a lot of the parameters have been changed since the original thesis to keep the running time minimal. The hope is that eventually the masters thesis will be able to be reproduced through various simple scripts - but in August 2020 this is not done There was a real data example in the thesis which, due to privacy rules, is not included in EVTr.</p>
 </div>
 
 
