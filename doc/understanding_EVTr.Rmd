@@ -1,0 +1,57 @@
+---
+title: "Using EVTr: Using extreme value theory to estimate long lasting injuries"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using EVTr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup}
+library(EVTr)
+```
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 3
+)
+```
+
+Athletes or individuals can either be injured or healthy. We assume that for our study, individuals start healthy (or in a healthy period). Then they remain healthy for a while until they switch to being injured (or in an injured state). Individuals continue alternating between these two states until our study is over (or the censoring point). Then we can use various estimation techniques to estimate the parameters of these injury periods. Does censoring matter? Can we assume the censored injury was not censored and use MLE normally? Will the censored injury be the longest injury and therefore should a censoring indicator be taken into account? 
+
+This package accompanies the masters thesis which can be found: https://escholarship.mcgill.ca/concern/theses/fn107132j. Generating data can be found in the "gen_data.R". Estimating the parameters is done in "estimation.R". The different simulation studies can be found in inst/scripts although a lot of the parameters have been changed since the original thesis to keep the running time minimal. The hope is that eventually the masters thesis will be able to be reproduced through various simple scripts - but in August 2020 this is not done completed. There was a real data example in the thesis which, due to privacy rules, is not included in EVTr. 
+
+The main extreme value theory references are (Coles, 2001), (McNeil et al., 2005), and (Embrechts et al., 1997). 
+
+## Generating data
+
+Generating data can be done using the following where 'censor' stands for the censoring time, 'xi' the $$xi$$ parameter in the generalized Pareto distribution, 'n' is the number of individuals or athletes in the study, 'num_inj' is the number of injuries each will have (we never witness all of these injuries unless 'censor' = NULL or a very large number), and 'rate_exp' is the rate parameter for the non-injury periods. The parameter 'ne' is only used when using one of the last two method (either 'max_excess' or 'excess'). More on this below. 
+
+```{r}
+gen_data(censor = 10,
+         xi = 1,
+         n = 5,
+         num_inj = 5,
+         rate_exp = 1,
+         ne = NULL,
+         specific = c("delete_censored_obs"),
+         seed = 1)
+```
+
+
+So this function generates data, assigns an ID and discloses if the injury was censored or not. Although the healthy periods are not shown in the table, we can assume that after the injury period is over, a healthy period begins. If the injury was censored, the 'Actual' column discloses the length of the actual injury (if we had an oracle, for example). 
+
+The \code{specific} parameter can take one of five options: 
+e longest injury (censored or not censored), then
+#' calculates the threshold based on \code{ne} (number of exceedances above the threshold). Finally returns only
+#' the excess above this given threshold.
+#' \code{excess}: simulates data, censors, then calculates the threshold based on \code{ne} (number of exceedances above
+#' the threshold). Finally returns only the excess above this given threshold.
+
+
+
+

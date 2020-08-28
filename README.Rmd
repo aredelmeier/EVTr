@@ -30,7 +30,7 @@ We use extreme value theory - and specifically the peaks-over-threshold method -
 * Will the censored injury be the longest injury and therefore should censoring be taken into account? 
 * What is the proportion of injuries being censored as appose to healthy periods? Will the distribution of the injuries/healthy periods play a roll in this proportion?
 
-This package accompanies a [masters thesis] (https://escholarship.mcgill.ca/concern/theses/fn107132j) called "Using extreme value theory to model severe injuries of circus artists". 
+This package accompanies a [masters thesis](https://escholarship.mcgill.ca/concern/theses/fn107132j) called "Using extreme value theory to model severe injuries of circus artists". 
 
 
 ## Installation
@@ -43,6 +43,10 @@ And the development version from [GitHub](https://github.com/) with:
 # install.packages("devtools")
 devtools::install_github("aredelmeier/EVTr")
 ```
+
+You can always check out the latest version of the vignette [here](https://norskregnesentral.github.io/shapr/articles/understanding_shapr.html). 
+
+
 ## Example
 
 This is a basic example which shows you how to solve a common problem:

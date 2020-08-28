@@ -43,8 +43,8 @@ theory to study these injury periods. Specifically, we ask
     healthy periods? Will the distribution of the injuries/healthy
     periods play a roll in this proportion?
 
-This package accompanies a \[masters thesis\]
-(<https://escholarship.mcgill.ca/concern/theses/fn107132j>) called
+This package accompanies a [masters
+thesis](https://escholarship.mcgill.ca/concern/theses/fn107132j) called
 “Using extreme value theory to model severe injuries of circus
 artists”.
 
@@ -58,6 +58,9 @@ And the development version from [GitHub](https://github.com/) with:
 # install.packages("devtools")
 devtools::install_github("aredelmeier/EVTr")
 ```
+
+You can always check out the latest version of the vignette
+[here](https://norskregnesentral.github.io/shapr/articles/understanding_shapr.html).
 
 ## Example
 
