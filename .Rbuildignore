@@ -4,3 +4,4 @@
 ^doc$
 ^Meta$
 ^\.lintr$
+^README\.Rmd$
