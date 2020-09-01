@@ -88,7 +88,8 @@ mle_gpd <- function(data) {
   theta <- c(xi0, beta0)
 
 
-  fit <- optim(theta, negloglik_gpd, hessian = TRUE, tmp = injury)
+  fit <- optim(theta, negloglik_gpd, method = "BFGS", hessian = FALSE, tmp = injury)
+  # fit <- nlminb(theta, negloglik_gpd, hessian = FALSE, tmp = injury) # optim
   return(fit$par[1])
 }
 
@@ -170,7 +171,7 @@ mle_cens_gpd <- function(data) {
 
   data <- cbind(injury, cens)
 
-  fit <- optim(theta, negloglik_cens_gpd, tmp = data)
+  fit <- optim(theta, negloglik_cens_gpd, method = "BFGS", hessian = FALSE, tmp = data)
   return(fit$par[1])
 }
 

@@ -192,10 +192,12 @@ extRemes::lr.test(gpd_extRemes_exp, gpd_extRemes)
 ##### Under Assumption that Injury Excess Exponential  ########
 ###############################################################
 
+threshold <- 100
+
 data <- CdS
 data_u <- data %>%
-  dplyr::filter(Injury_Length > 100) %>%
-  dplyr::mutate(Injury_Length = Injury_Length - 100)
+  dplyr::filter(Injury_Length > threshold) %>%
+  dplyr::mutate(Injury_Length = Injury_Length - threshold)
 
 beta_reg <- as.numeric(extRemes::fevd(x = data$total_missed_perfo, threshold = 100,
                                       type = "Exponential")$results$par)
@@ -266,6 +268,21 @@ dev.off()
 
 
 # QQ Plot (I changed the qqline function a little to work with the exponential distribution)
+
+qqline <- function (y, datax = FALSE, probs = c(0.25, 0.75), qtype = 7, ...) {
+  stopifnot(length(probs) == 2, is.function(distribution))
+  y <- quantile(y, probs, names = FALSE, type = qtype, na.rm = TRUE)
+  x <- qexp(probs, rate = 1 / beta_reg)
+  if (datax) {
+    slope <- diff(x) / diff(y)
+    int <- x[1L] - slope * y[1L]
+  }
+  else {
+    slope <- diff(y)/diff(x)
+    int <- y[1L] - slope * x[1L]
+  }
+  abline(int, slope, ...)
+}
 
 data <- data_u$Injury_Length
 
@@ -501,16 +518,16 @@ data337[, n := .N, by = "MediCirqueId"][n > 1]
 # 36/194 = 19%
 
 
+CdS.2 <- merge(CdS, cirque_max, by = "counter", all.x = TRUE)
+CdS.2[, Longest_Injury := ifelse(max_missed_perfo == total_missed_perfo, 1, 0)]
+CdS.2[, Longest_Injury := as.factor(Longest_Injury)]
+
 pmax <- ggplot(data = CdS.2, aes(y = total_missed_perfo, x = counter, color = Longest_Injury)) +
   geom_jitter() +
   scale_y_continuous(breaks = sort(c(0, 81, 323, 500, 1000))) +
   xlab("Artist Id") +
   ylab("Total Missed Performances")
 
-
-CdS.2 <- merge(CdS, cirque_max, by = "counter", all.x = TRUE)
-CdS.2[, Longest_Injury := ifelse(max_missed_perfo == total_missed_perfo, 1, 0)]
-CdS.2[, Longest_Injury := as.factor(Longest_Injury)]
 
 pmax_u <- ggplot(data = CdS.2, aes(y = total_missed_perfo, x = counter, color = Longest_Injury)) +
   geom_jitter() +

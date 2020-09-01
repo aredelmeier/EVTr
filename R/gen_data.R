@@ -140,6 +140,7 @@ gen_data <- function(censor = NULL,
 
 
   if (!is.null(censor)) {
+
     df_long[, Censored := ifelse(csum <= censor, 0, 1)]
 
     df_long[, lagged_censored :=  shift(Censored), by = ID]
@@ -163,12 +164,13 @@ gen_data <- function(censor = NULL,
 
     data <- df_rm
 
-
   } else {
+
     df_long[, Censored := 0]
     df_long[, first_censored := 0]
     df_long[, Actual := Injury_Length]
     df_long[, Any_Injury_Censored := 0]
+
     data <- df_long
 
   }
@@ -176,20 +178,15 @@ gen_data <- function(censor = NULL,
   Prop_injuries_censored <- nrow(data[injury == 1][first_censored == 1]) / n
   Prop_ind_with_censored_injury <- nrow(data[injury == 1][first_censored == 1]) /
     nrow(data[injury == 1])
-  # Prop_healthy_censored <- nrow(data[injury == 0][first_censored == 1]) / n
-  # Prop_censored <- nrow(data[first_censored == 1]) / n
 
   data_inj <- data[injury == 1][, max_injury_length := max(Injury_Length), by = ID]
   tmp <- data_inj[max_injury_length == Injury_Length][Censored == 1]
   Prop_max_censored <- nrow(tmp) / n
 
-
   data[, "Prop_of_injuries_censored" := Prop_injuries_censored]
   data[, "Prop_of_ind_with_censored_injury" := Prop_ind_with_censored_injury]
   data[, "Prop_maxima_censored" := Prop_max_censored]
 
-  # data[, 'Prop_of_healthy_censored' := Prop_healthy_censored]
-  # data[, 'Prop_of_injuries_and_healthy_censored' := Prop_censored]
 
   # Extract only injuries
   data <- data[injury == 1]
@@ -214,9 +211,20 @@ gen_data <- function(censor = NULL,
 
   } else if (specific == "keep_censored_obs") {
 
-    data_return <- data
-    setcolorder(data_return, c("Injury_Length", "ID", "Censored", "Actual", "Any_Injury_Censored"))
+    # data_return <- data
 
+    data_not_censored <- data[Censored != 1]
+    data_not_censored[, mean_not_censored := mean(Injury_Length), by = c("ID")]
+    data_not_censored <- unique(data_not_censored[, c("ID", "mean_not_censored")])
+
+    data_censored <- data[Censored == 1]
+    data_censored[, mean_censored := mean(Injury_Length), by = c("ID")]
+    data_censored <- unique(data_censored[, c("ID", "mean_censored")])
+
+    data_return <- merge(data, data_not_censored, on = "ID", all.x = TRUE)
+    data_return <- merge(data_return, data_censored, on = "ID", all.x = TRUE)
+
+    setcolorder(data_return, c("Injury_Length", "ID", "Censored", "Actual", "Any_Injury_Censored"))
     setkeyv(data_return, "ID")
 
     return(data_return)

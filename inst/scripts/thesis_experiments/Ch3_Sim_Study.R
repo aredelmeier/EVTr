@@ -140,7 +140,7 @@ df[, ID := .GRP, by = .(method, data_manu, censor)]
 
 df0 <- df[, c("value", "ID")]
 
-df_agg <- aggregate(. ~ ID, df0, function(x) c(mean = mean(x), sd = sd(x)))
+df_agg <- aggregate(. ~ ID, df0, function(x) c(mean = mean(x), bias = mean(x) - 0.5, sd = sd(x)))
 
 df1 <- df[, c("ID", "method", "data_manu", "censor")]
 df1 <- unique(df1)
@@ -148,7 +148,17 @@ df1 <- unique(df1)
 df_all <- merge(df_agg, df1, by = "ID")
 df_all
 
-# some how also need to come up with bias, sd, MSE?
+# long to wide
+df_all <- data.table(df_all)
+
+tmp_non_cens_like <- df_all[data_manu == "keep_censored_obs"][method == "MLE"][, c("censor", "value.bias", "value.sd", "value.mean")]
+
+tmp_del_like <- df_all[data_manu == "delete_censored_obs"][method == "MLE"][, c("censor", "value.bias", "value.sd", "value.mean")]
+
+tmp_cens_like <- df_all[data_manu == "keep_censored_obs"][method == "CensMLE"][, c("censor", "value.bias", "value.sd", "value.mean")]
+
+cbind(tmp_non_cens_like, tmp_del_like[, censor := NULL], tmp_cens_like[, censor := NULL])
+
 
 # To get Figure 3-4: Simulation 2
 
@@ -158,47 +168,67 @@ df[, method_datamanu := paste(method, data_manu, sep = "-")]
 
 ggplot(df, aes(x = method_datamanu, y = value - 0.5, fill = censor)) +
   geom_boxplot() +
-  xlab("mle method + data manipulation") +
-  ylab("bias")
+  xlab("End-of-Followup Time") +
+  ylab("Observed Bias") +
+  geom_hline(yintercept = 0, col = "red")
 
-# Figure 3-3
+
+# To get Figure 3-3
 
 # Make a figure such that for different censoring times we have the
 # average length of the censored observations
 # and the average length of the non-censored observations
 
-method <- c("N")
+method <- c("mean_not_censored", "mean_censored")
+censor <- c(3, 6, 12, 36)
 
-results_MLE <- matrix(NA, nrow = n.sim, ncol = length(censor))
+results_not_censored <- matrix(NA, nrow = n.sim, ncol = length(censor))
+results_censored <- matrix(NA, nrow = n.sim, ncol = length(censor))
 
 
 results <- list()
-for (met in method) {
-  for (i in 1:n.sim) {
-    row_MLE <- NULL
-    for (cens in censor) {
+for (i in 1:n.sim) {
+  row_not_censored <- NULL
+  row_censored <- NULL
+  for (cens in censor) {
 
+    data <- gen_data(censor = cens,
+                     xi = xi,
+                     n = n,
+                     num_inj = num_inj,
+                     rate_exp = rate_exp,
+                     ne = ne,
+                     specific = "keep_censored_obs",
+                     seed = i)
 
-      data <- gen_data(censor = cens,
-                       xi = xi,
-                       n = n,
-                       num_inj = num_inj,
-                       rate_exp = rate_exp,
-                       ne = ne,
-                       specific = "max_excess",
-                       seed = i)
+    mean_not_censored <- mean(data[Censored == 0][["Injury_Length"]])
+    mean_censored <- mean(data[Censored == 1][["Injury_Length"]])
 
-      row_MLE <- c(row_MLE, data$Percent_of_obs_above_thresh[1])
-
-    }
-    results_MLE[i, ] <- row_MLE
+    row_not_censored <- c(row_not_censored, mean_not_censored)
+    row_censored <- c(row_censored, mean_censored)
 
   }
-  results[[met]] <- data.table(results_MLE)
+  results_not_censored[i, ] <- row_not_censored
+  results_censored[i, ] <- row_censored
+
 
 }
+results[["mean_not_censored"]] <- data.table(results_not_censored)
+results[["mean_censored"]] <- data.table(results_censored)
 
 
+results_MLE_dt <- rbindlist(results, idcol = TRUE)
+
+colnames(results_MLE_dt) <- c("method", as.character(censor))
+results_MLE_dt[, n := 1:.N, by = method]
+
+df_N <- data.table::melt(results_MLE_dt, id.vars = c("method", "n"), variable.name = "censor")
+setkeyv(df_N, "method")
 
 
+# Figure 3-3
+ggplot(df_N, aes(x = censor, y = value, fill = method)) +
+  geom_boxplot() +
+  xlab("End-of_Followup Time") +
+  ylab("Average Injury Length")
 

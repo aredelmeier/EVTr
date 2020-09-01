@@ -5,6 +5,9 @@
 #'
 #' @param ne Integer. Count of excesses above the threshold.
 #'
+#' @param theshold Integer. If \code{ne} is not supplied, \code{threshold} can be used to specify the threshold
+#' to use.
+#'
 #' @return Dataframe. Of observations above the threshold (decided by \code{ne}) and the excess above the threshold.
 #'
 #' @export
@@ -19,29 +22,32 @@
 #' excess(data, ne = 1)
 
 
-excess <- function(data, ne) {
+excess <- function(data, ne = NULL, threshold = NULL) {
 
   Injury_Length <- Injury_Length_before <- threshold <- NULL
 
   if (!is.data.frame(data)) {
     stop("data must be a data.frame.")
   }
-
+  data <- data.table(data)
 
   if (!("Injury_Length" %in% names(data))) {
     stop("data must include a column called 'Injury_Length' with the data.")
   }
 
-  if (is.null(ne)) {
-    stop("Please include 'ne'. ")
+  if (!is.null(ne)) {
+    thresh <- QRM::findthreshold(data = data$Injury_Length, ne = ne)
+
+    if (length(thresh) > 1) {
+      stop("Please include a larger threshold so that not all data is below threshold.")
+    }
+
+  } else if (!is.null(threshold)) {
+    thresh <- threshold
   }
-
-  data <- data.table(data)
-
-  thresh <- QRM::findthreshold(data = data$Injury_Length, ne = ne)
-
-  if (length(thresh) > 1) {
-    stop("Please include a larger threshold so that not all data is below threshold.")
+  else {
+    stop("Please include either 'ne' for the number above the threshold or 'threshold' for the
+         actual threshold to be used.")
   }
 
   exc <- data[Injury_Length >= thresh]
