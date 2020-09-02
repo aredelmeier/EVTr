@@ -233,4 +233,3 @@ tmp_non_cens_like <- df_all[method == "MLE"][, c("censor", "value.bias", "value.
 tmp_cens_like <- df_all[method == "CensMLE"][, c("censor", "value.bias", "value.sd", "value.mean")]
 
 cbind(tmp_non_cens_like, tmp_cens_like[, censor := NULL])
-

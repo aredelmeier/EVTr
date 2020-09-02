@@ -16,8 +16,10 @@ CdS[, ID := .GRP, by = "MediCirqueId"]
 CdS[, Censored := ifelse(end == "2017-01-01", 1, 0)]
 
 
-#    MediCirqueId PHCInjuryId         status      start        end missed_days total_missed_perfo total_exposed_perfo long_seq_missed_perfo
-# 1:        41738      294007 Out Completely 2009-07-16 2013-10-23        1561               1411                   0                  1411
+#    MediCirqueId PHCInjuryId         status      start        end missed_days total_missed_perfo total_exposed_perfo
+# 1:        41738      294007 Out Completely 2009-07-16 2013-10-23        1561               1411                   0
+# long_seq_missed_perfo
+#                  1411
 
 # Figure 5-1
 p1 <- ggplot(data = CdS, aes(y = total_missed_perfo, x = ID)) +
@@ -68,7 +70,7 @@ data_u_cens <- data_u[Censored == 1]
 
 CdS_ties <- data_u[, n := .N, by = "Injury_Length"]
 
-method <- c("MLE_full","CensMLE_full")
+method <- c("MLE_full", "CensMLE_full")
 
 met_all <- matrix(NA, nrow = 2, ncol = 4)
 colnames(met_all) <- c("MLE", "se", "CensMLE", "se")
@@ -280,7 +282,7 @@ xtable(RL, digits = c(3, 3, 3, 3))
 # Figure 5-9
 # QQ Plot (I changed the qqline function a little to work with the exponential distribution)
 
-qqline <- function (y, datax = FALSE, probs = c(0.25, 0.75), qtype = 7, ...) {
+qqline <- function(y, datax = FALSE, probs = c(0.25, 0.75), qtype = 7, ...) {
   stopifnot(length(probs) == 2, is.function(distribution))
   y <- quantile(y, probs, names = FALSE, type = qtype, na.rm = TRUE)
   x <- qexp(probs, rate = 1 / beta_reg)
@@ -289,7 +291,7 @@ qqline <- function (y, datax = FALSE, probs = c(0.25, 0.75), qtype = 7, ...) {
     int <- x[1L] - slope * y[1L]
   }
   else {
-    slope <- diff(y)/diff(x)
+    slope <- diff(y) / diff(x)
     int <- y[1L] - slope * x[1L]
   }
   abline(int, slope, ...)
@@ -314,4 +316,3 @@ qqplot(x = qexp(p = ppoints(100), rate = 1 / beta_reg), y = data_max_u$Injury_Le
        xlab = "Theoretical Quantiles", ylab = "Sample Quantiles")
 qqline(data)
 dev.off()
-

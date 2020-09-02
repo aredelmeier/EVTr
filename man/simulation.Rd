@@ -48,14 +48,14 @@ estimator (mle) based on \code{method}.
 }
 \examples{
 
-censor <- 3; xi <- 0.5; n <- 10; num_inj <- 3; rate_exp <- 1
+censor <- 3; xi <- 0.5; n <- 2; num_inj <- 3; rate_exp <- 1
 specific <- "delete_censored_obs"
 seed <- 1
 method <- "MLE"
 
 simulation(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
 specific = "delete_censored_obs",
-seed = seed, method = method)[]
+seed = seed, method = method)
 }
 \author{
 Annabelle Redelmeier

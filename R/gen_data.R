@@ -79,24 +79,10 @@
 #' @import data.table
 #'
 #' @examples
-#' censor <- 3; xi <- 0.5; n <- 10; num_inj <- 3; rate_exp <- 1; ne <- 5
+#' censor <- 3; xi <- 0.5; n <- 2; num_inj <- 3; rate_exp <- 1; ne <- 1
 #'
 #' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
-#' specific = "delete_censored_obs")[]
-#'
-#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
-#' specific = "keep_censored_obs")[]
-#'
-#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
-#' specific = "keep_only_max_obs")[]
-#'
-#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
-#' ne = ne, specific = "max_excess")[]
-#'
-#' gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
-#' ne = ne, specific = "excess")[]
-#'
-
+#' specific = "delete_censored_obs")
 gen_data <- function(censor = NULL,
                      xi,
                      n,
@@ -113,13 +99,14 @@ gen_data <- function(censor = NULL,
   ID <- ave <- obs <- obs_id <- variable <- injury <- Censored <- csum <- lagged_censored <- NULL
   first_censored <- after_censored <- Censored_Length <- Injury_Length_with_censored <- NULL
   Injury_Length <- Actual <- Any_Injury_Censored <- max_injury_length <- delta <- Injury_Length_before <- NULL
+  mean_not_censored <- mean_censored <- NULL
 
 
   set.seed(seed)
 
   # Generate data
   Healthy <- matrix(rexp(n * num_inj, rate = rate_exp), nrow = n, ncol = num_inj)
-  Injured <- matrix(QRM::rGPD(n * num_inj, xi = xi), nrow = n, ncol = num_inj)
+  Injured <- matrix(rGPD_QRM(n * num_inj, xi = xi), nrow = n, ncol = num_inj)
 
   # Combine matrices
   df <- matrix(NA, nrow = n, ncol = 2 * num_inj)
@@ -307,16 +294,14 @@ gen_data <- function(censor = NULL,
 #'
 #' @examples
 #'
-#' censor <- 3; xi <- 0.5; n <- 10; num_inj <- 3; rate_exp <- 1
+#' censor <- 3; xi <- 0.5; n <- 2; num_inj <- 3; rate_exp <- 1
 #' specific <- "delete_censored_obs"
 #' seed <- 1
 #' method <- "MLE"
 #'
 #' simulation(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
 #' specific = "delete_censored_obs",
-#' seed = seed, method = method)[]
-
-
+#' seed = seed, method = method)
 simulation <- function(censor = NULL,
                        xi,
                        n,
@@ -337,4 +322,41 @@ simulation <- function(censor = NULL,
                    seed = seed)
 
   mle(full, method = method)
+}
+
+
+#' This is the rGPD function in the QRM package. It is used to generate generalized Pareto distribution
+#' random variables.
+#'
+#' @param n Integer. The number of random variables to generate.
+#'
+#' @param xi Numeric. The xi parameter in the generalized Pareto distribution.
+#'
+#' @param beta Numeric. The beta parameter in the generalized Pareto distribution.
+#'
+#' @return Vector. Length equal to \code{n}. Corresponds to random variables from the GPD distribution.
+#'
+#' @export
+#'
+#' @examples
+#'
+#' n <- 10; xi <- 1;
+#' rGPD_QRM(n, xi)
+#'
+rGPD_QRM <- function(n, xi, beta = 1) {
+
+  qGPD <- function(p, xi, beta = 1) {
+    stopifnot(beta > 0)
+
+    p. <- pmax(pmin(p, 1), 0)
+
+    if (xi == 0) {
+      qexp(p., rate = 1 / beta)
+    } else {
+      (beta / xi) * ((1 - p.) ^ (- xi) - 1)
+    }
+  }
+
+  return(qGPD(runif(n), xi, beta))
+
 }

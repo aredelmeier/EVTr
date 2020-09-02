@@ -151,11 +151,20 @@ df_all
 # long to wide
 df_all <- data.table(df_all)
 
-tmp_non_cens_like <- df_all[data_manu == "keep_censored_obs"][method == "MLE"][, c("censor", "value.bias", "value.sd", "value.mean")]
+tmp_non_cens_like <- df_all[data_manu == "keep_censored_obs"][method == "MLE"][, c("censor",
+                                                                                   "value.bias",
+                                                                                   "value.sd",
+                                                                                   "value.mean")]
 
-tmp_del_like <- df_all[data_manu == "delete_censored_obs"][method == "MLE"][, c("censor", "value.bias", "value.sd", "value.mean")]
+tmp_del_like <- df_all[data_manu == "delete_censored_obs"][method == "MLE"][, c("censor",
+                                                                                "value.bias",
+                                                                                "value.sd",
+                                                                                "value.mean")]
 
-tmp_cens_like <- df_all[data_manu == "keep_censored_obs"][method == "CensMLE"][, c("censor", "value.bias", "value.sd", "value.mean")]
+tmp_cens_like <- df_all[data_manu == "keep_censored_obs"][method == "CensMLE"][, c("censor",
+                                                                                   "value.bias",
+                                                                                   "value.sd",
+                                                                                   "value.mean")]
 
 cbind(tmp_non_cens_like, tmp_del_like[, censor := NULL], tmp_cens_like[, censor := NULL])
 
@@ -231,4 +240,3 @@ ggplot(df_N, aes(x = censor, y = value, fill = method)) +
   geom_boxplot() +
   xlab("End-of_Followup Time") +
   ylab("Average Injury Length")
-

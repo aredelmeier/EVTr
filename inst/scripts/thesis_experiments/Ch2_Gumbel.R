@@ -165,7 +165,7 @@ pareto_table <- matrix(NA, nrow = 6, ncol = 5)
 rownames(pareto_table) <- c("xi", "beta", "mu", "sigma", "P(X > x_k)", "x_k")
 colnames(pareto_table) <- c("Truth", "Fit_Frechet", "se", "Fit_GPD", "se")
 
-pareto_table[, 1] <- c(xi, beta , NA, NA, 1 / Prob_pareto_true, zk_pareto_true)
+pareto_table[, 1] <- c(xi, beta, NA, NA, 1 / Prob_pareto_true, zk_pareto_true)
 pareto_table[, 2] <- c(xi_frechet_hat2, NA, mu_frechet_hat2, sigma_frechet_hat2, 1 / Prob_frechet_hat2, zk_frechet_hat2)
 pareto_table[, 3] <- c(xi_frechet_se2, NA, mu_frechet_se2, sigma_frechet_se2, NA, NA)
 pareto_table[, 4] <- c(xi_pareto_hat2, beta_pareto_hat2, NA, NA, 1 / Prob_pareto_hat2, zk_pareto_hat2)

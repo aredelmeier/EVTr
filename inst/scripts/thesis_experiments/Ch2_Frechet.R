@@ -13,7 +13,8 @@ library(xtable)
 ############# Generate Frechet, Fit GPD ###################
 ###########################################################
 
-gen_frechet_fit_Frechet_and_GPD <- function(xi, mu, sigma, k, x_k) {
+gen_Frechet_fit_GPD <- function(xi, mu, sigma, k, x_k) {
+
   #P(X > xk)
   Prob_frechet_true <- 1 - exp(- (1 + xi * ((xk - mu) / sigma)) ^ (- 1 / xi))
 
@@ -73,7 +74,7 @@ sigma <- 1
 k <- 100
 xk <- 5
 
-frechet_table <- gen_frechet_fit_GPD(xi, mu, sigma, k, x_k)
+frechet_table <- gen_Frechet_fit_GPD(xi, mu, sigma, k, x_k)
 round(frechet_table, 5)
 xtable::xtable(frechet_table, digits = c(3, 3, 3, 3, 3, 3))
 
@@ -85,7 +86,7 @@ sigma <- 1
 k <- 100
 xk <- 5
 
-frechet_table <- gen_frechet_fit_GPD(xi, mu, sigma, k, x_k)
+frechet_table <- gen_Frechet_fit_GPD(xi, mu, sigma, k, x_k)
 round(frechet_table, 5)
 xtable::xtable(frechet_table, digits = c(3, 3, 3, 3, 3, 3))
 
@@ -102,7 +103,7 @@ xk <- 5
 ############# Generate GPD, Fit Frechet ###################
 ###########################################################
 
-gen_GPD_fit_frechet_and_GP <- function(xi, beta, k, x_k) {
+gen_GPD_fit_Frechet <- function(xi, beta, k, x_k) {
 
   # P(X > xk)
   Prob_pareto_true <- (1 + xi * xk / beta) ^ (- 1 / xi)
@@ -148,9 +149,11 @@ gen_GPD_fit_frechet_and_GP <- function(xi, beta, k, x_k) {
   colnames(pareto_table) <- c("Truth", "Fit_Frechet", "se", "Fit_GPD", "se")
 
   pareto_table[, 1] <- c(xi, beta, NA, NA, 1 / Prob_pareto_true, zk_pareto_true)
-  pareto_table[, 2] <- c(xi_frechet_hat2, NA, mu_frechet_hat2, sigma_frechet_hat2, 1 / Prob_frechet_hat2, zk_frechet_hat2)
+  pareto_table[, 2] <- c(xi_frechet_hat2, NA, mu_frechet_hat2, sigma_frechet_hat2,
+                         1 / Prob_frechet_hat2, zk_frechet_hat2)
   pareto_table[, 3] <- c(xi_frechet_se2, NA, mu_frechet_se2, sigma_frechet_se2, NA, NA)
-  pareto_table[, 4] <- c(xi_pareto_hat2, beta_pareto_hat2, NA, NA, 1 / Prob_pareto_hat2, zk_pareto_hat2)
+  pareto_table[, 4] <- c(xi_pareto_hat2, beta_pareto_hat2, NA, NA, 1 / Prob_pareto_hat2,
+                         zk_pareto_hat2)
   pareto_table[, 5] <- c(xi_pareto_se2, beta_pareto_se2, NA, NA, NA, NA)
 
   # round(pareto_table, 3)
@@ -175,7 +178,7 @@ beta <- 1
 k <- 100
 xk <- 5
 
-pareto_table <- gen_GPD_fit_frechet_and_GP(xi, beta, k, xk)
+pareto_table <- gen_GPD_fit_Frechet(xi, beta, k, xk)
 
 round(pareto_table, 3)
 
@@ -188,9 +191,8 @@ beta <- 1
 k <- 100
 xk <- 5
 
-pareto_table <- gen_GPD_fit_frechet_and_GP(xi, beta, k, xk)
+pareto_table <- gen_GPD_fit_Frechet(xi, beta, k, xk)
 
 round(pareto_table, 3)
 
 xtable(pareto_table, digits = c(3, 3, 3, 3, 3, 3))
-

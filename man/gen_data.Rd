@@ -96,23 +96,10 @@ the excess above this given threshold.
 the threshold). Finally returns only the excess above this given threshold.
 }
 \examples{
-censor <- 3; xi <- 0.5; n <- 10; num_inj <- 3; rate_exp <- 1; ne <- 5
+censor <- 3; xi <- 0.5; n <- 2; num_inj <- 3; rate_exp <- 1; ne <- 1
 
 gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
-specific = "delete_censored_obs")[]
-
-gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
-specific = "keep_censored_obs")[]
-
-gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
-specific = "keep_only_max_obs")[]
-
-gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
-ne = ne, specific = "max_excess")[]
-
-gen_data(censor = censor, xi = xi, n = n, num_inj = num_inj, rate_exp = rate_exp,
-ne = ne, specific = "excess")[]
-
+specific = "delete_censored_obs")
 }
 \author{
 Annabelle Redelmeier

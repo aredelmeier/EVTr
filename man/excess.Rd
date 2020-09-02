@@ -7,11 +7,11 @@
 excess(data, ne = NULL, threshold = NULL)
 }
 \arguments{
-\item{data}{Dataframe. Contains at least the columns "ID", "Injury_Length", and "Censored".}
+\item{data}{Dataframe. Contains at least the columns "ID" and "Injury_Length"..}
 
 \item{ne}{Integer. Count of excesses above the threshold.}
 
-\item{theshold}{Integer. If \code{ne} is not supplied, \code{threshold} can be used to specify the threshold
+\item{threshold}{Integer. If \code{ne} is not supplied, \code{threshold} can be used to specify the threshold
 to use.}
 }
 \value{

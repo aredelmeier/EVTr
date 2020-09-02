@@ -89,11 +89,10 @@ mle_gpd <- function(data) {
 
 
   fit <- optim(theta, negloglik_gpd, method = "BFGS", hessian = FALSE, tmp = injury)
-  # fit <- nlminb(theta, negloglik_gpd, hessian = FALSE, tmp = injury) # optim
   return(fit$par[1])
 }
 
-#' The negative log-likelihood of the generalized Pareto distribution. Based on dGPD from the QRM R package.
+#' The negative log-likelihood of the generalized Pareto distribution.
 #'
 #' @param theta Vector. Length 2. The first argument corresponds to $$xi$$ in the GPD distribution and the second
 #' argument corresponds to $$beta$$.
@@ -242,7 +241,7 @@ negloglik_cens_gpd <- function(theta, tmp) {
 #' data <- data.frame(Injury_Length = rexp(100))
 #'
 #' mle_gpd_full(data = data, threshold = 1, information = "expected")
-mle_gpd_full <- function (data, threshold, information = c("observed", "expected")) {
+mle_gpd_full <- function(data, threshold, information = c("observed", "expected")) {
 
   data <- data$Injury_Length
 
@@ -264,7 +263,7 @@ mle_gpd_full <- function (data, threshold, information = c("observed", "expected
   par.ests <- c(xi, beta)
 
   negloglik <- function(theta, ydata) {
-    -sum(QRM::dGPD(ydata, theta[1], abs(theta[2]), log = TRUE))
+    -sum(dGPD_QRM(ydata, theta[1], abs(theta[2]), log = TRUE))
   }
 
   deriv <- function(theta, ydata) {
@@ -272,9 +271,9 @@ mle_gpd_full <- function (data, threshold, information = c("observed", "expected
     beta <- theta[2]
     term1 <- sum(ydata / (beta + xi * ydata))
     term2 <- sum(log(1 + xi * ydata / beta))
-    d1 <- -term2 * xi^(-2) + (1 + 1 / xi) * term1
+    d1 <- - term2 * xi ^ (-2) + (1 + 1 / xi) * term1
     d2 <- (length(ydata) - (xi + 1) * term1) / beta
-    c(d1, d2)
+    return(c(d1, d2))
   }
 
   fit <- optim(par.ests, fn = negloglik, gr = deriv, ydata = excess)
@@ -290,7 +289,7 @@ mle_gpd_full <- function (data, threshold, information = c("observed", "expected
   if (information == "expected") {
     one <- (1 + par.ests[1]) ^ 2 / Nu
     two <- (2 * (1 + par.ests[1]) * par.ests[2] ^ 2) / Nu
-    cov <- -((1 + par.ests[1]) * par.ests[2]) / Nu
+    cov <- - ((1 + par.ests[1]) * par.ests[2]) / Nu
     varcov <- matrix(c(one, cov, cov, two), 2)
   }
 
@@ -304,6 +303,51 @@ mle_gpd_full <- function (data, threshold, information = c("observed", "expected
   names(out$par.ests) <- c("xi", "beta")
   names(out$par.ses) <- c("xi", "beta")
   out
+}
+
+#' This function is the dGPD function from the QRM package.
+#'
+#' @param x Vector. The data used to estimate GPD parameters from.
+#'
+#' @param xi Numeric. The xi parameter from the GPD distribution.
+#'
+#' @param beta Numeric. The beta parameter from the GPD distribution.
+#'
+#' @param log Logical. If TRUE, will not return the log of the estimate.
+#'
+#' @return Vector of length \code{length(x)}. The density of the GPD evaluated at
+#' each \code{x} value.
+#'
+#' @export
+#'
+#' @examples
+#'
+#' x <- 1:10; xi <- 0.5;
+#'
+#' dGPD_QRM(x = x, xi = xi)
+dGPD_QRM <- function(x, xi, beta = 1, log = FALSE) {
+  xb <- x / beta
+
+  if (xi == 0) {
+    res <- log(dexp(xb)) - log(beta)
+  } else {
+
+    if (xi < 0) {
+      ind <- xb > 0 & (xb < 1 / abs(xi))
+    } else {
+      ind <- xb > 0
+    }
+
+    r <- rep(-Inf, length(x))
+    r[ind] <- (-1 / xi - 1) * log(1 + xi * xb[ind]) - log(beta)
+    res <- r
+  }
+
+  if (log) {
+    return(res)
+  } else {
+    return(exp(res))
+  }
 }
 
 #' This function is a mixture of two packages (I think): one that does mle estimation and the other
@@ -333,7 +377,7 @@ mle_gpd_full <- function (data, threshold, information = c("observed", "expected
 #' data <- data.frame(Injury_Length = rexp(100), Censored = rbinom(100, 1, 0.5))
 #'
 #' mle_cens_gpd_full(data = data, threshold = 1, information = "expected")
-mle_cens_gpd_full <- function (data, threshold, information = c("observed", "expected")) {
+mle_cens_gpd_full <- function(data, threshold, information = c("observed", "expected")) {
 
   Injury_Length <- NULL
 
@@ -354,7 +398,7 @@ mle_cens_gpd_full <- function (data, threshold, information = c("observed", "exp
   delta <- 0
   pvec <- ((1:Nu) + delta) / (Nu + delta)
   a1 <- mean(sort(excess) * (1 - pvec))
-  xi <- 2 - a0/(a0 - 2 * a1)
+  xi <- 2 - a0 / (a0 - 2 * a1)
   beta <- (2 * a0 * a1) / (a0 - 2 * a1)
   par.ests <- c(xi, beta)
 
@@ -366,8 +410,8 @@ mle_cens_gpd_full <- function (data, threshold, information = c("observed", "exp
     if (cond1 || cond2)
       f <- 1e+06
     else {
-      y <- logb(1 + (xi * ydata[, 1])/beta)
-      y <- y/xi
+      y <- logb(1 + (xi * ydata[, 1]) / beta)
+      y <- y / xi
       f <- sum((1 - ydata[, 2]) * (logb(beta) + (1 + xi) * y) + (ydata[, 2]) * y)
 
     }
@@ -386,7 +430,7 @@ mle_cens_gpd_full <- function (data, threshold, information = c("observed", "exp
   if (information == "expected") {
     one <- (1 + par.ests[1]) ^ 2 / Nu
     two <- (2 * (1 + par.ests[1]) * par.ests[2] ^ 2) / Nu
-    cov <- -((1 + par.ests[1]) * par.ests[2]) / Nu
+    cov <- - ((1 + par.ests[1]) * par.ests[2]) / Nu
     varcov <- matrix(c(one, cov, cov, two), 2)
   }
 
@@ -401,4 +445,3 @@ mle_cens_gpd_full <- function (data, threshold, information = c("observed", "exp
   names(out$par.ses) <- c("xi", "beta")
   out
 }
-

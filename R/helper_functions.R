@@ -1,18 +1,16 @@
 
 #' Calculate excess above the threshold. Threshold calculated using ne = count of excesses above the threshold.
 #'
-#' @param data Dataframe. Contains at least the columns "ID", "Injury_Length", and "Censored".
+#' @param data Dataframe. Contains at least the columns "ID" and "Injury_Length"..
 #'
 #' @param ne Integer. Count of excesses above the threshold.
 #'
-#' @param theshold Integer. If \code{ne} is not supplied, \code{threshold} can be used to specify the threshold
+#' @param threshold Integer. If \code{ne} is not supplied, \code{threshold} can be used to specify the threshold
 #' to use.
 #'
 #' @return Dataframe. Of observations above the threshold (decided by \code{ne}) and the excess above the threshold.
 #'
 #' @export
-#'
-#' @import QRM
 #'
 #' @author Annabelle Redelmeier
 #'
@@ -20,8 +18,6 @@
 #' data <- data.frame(ID = c(rep(1, 3), rep(2, 2), rep(3, 4), 5), Injury_Length = rexp(10))
 #'
 #' excess(data, ne = 1)
-
-
 excess <- function(data, ne = NULL, threshold = NULL) {
 
   Injury_Length <- Injury_Length_before <- threshold <- NULL
@@ -36,7 +32,7 @@ excess <- function(data, ne = NULL, threshold = NULL) {
   }
 
   if (!is.null(ne)) {
-    thresh <- QRM::findthreshold(data = data$Injury_Length, ne = ne)
+    thresh <- findthreshold_QRM(data = data$Injury_Length, ne = ne)
 
     if (length(thresh) > 1) {
       stop("Please include a larger threshold so that not all data is below threshold.")
@@ -58,4 +54,39 @@ excess <- function(data, ne = NULL, threshold = NULL) {
   exc[, excess := NULL]
 
   return(exc)
+}
+
+
+#' Calculate the threshold such that there are \code{ne} instances from \code{data} above this threshold.
+#' This code comes from the QRM package.
+#'
+#' @param data Dataframe. Contains at least the columns "ID", "Injury_Length", and "Censored".
+#'
+#' @param ne Integer. Count of excesses above the threshold.
+#'
+#' @return Dataframe. Of observations above the threshold (decided by \code{ne}) and the excess above the threshold.
+#'
+#' @export
+#'
+#'
+#' @examples
+#' data <- rexp(10)
+#'
+#' findthreshold_QRM(data, ne = 1)
+#'
+findthreshold_QRM <- function(data, ne) {
+
+  if (!is.vector(data)) {
+    stop("\ndata input to findthreshold() must be a vector or timeSeries with only one data column.\n")
+  }
+
+  if (all(length(data) < ne)) {
+    stop("\ndata length less than ne (number of exceedances.\n")
+  }
+
+  data <- rev(sort(as.numeric(data)))
+  thresholds <- unique(data)
+  indices <- match(data[ne], thresholds)
+  indices <- pmin(indices + 1, length(thresholds))
+  return(thresholds[indices])
 }

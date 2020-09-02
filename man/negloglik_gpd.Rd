@@ -2,7 +2,7 @@
 % Please edit documentation in R/estimation.R
 \name{negloglik_gpd}
 \alias{negloglik_gpd}
-\title{The negative log-likelihood of the generalized Pareto distribution. Based on dGPD from the QRM R package.}
+\title{The negative log-likelihood of the generalized Pareto distribution.}
 \usage{
 negloglik_gpd(theta, tmp)
 }
@@ -16,7 +16,7 @@ argument corresponds to $$beta$$.}
 Numeric. Corresponding to the maximum likelihood estimator based on the generalized Pareto distribution.
 }
 \description{
-The negative log-likelihood of the generalized Pareto distribution. Based on dGPD from the QRM R package.
+The negative log-likelihood of the generalized Pareto distribution.
 }
 \examples{
 
