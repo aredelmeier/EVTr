@@ -5,8 +5,8 @@
 
 <!-- badges: start -->
 
-[![R build
-status](https://github.com/aredelmeier/EVTr/workflows/R-CMD-check/badge.svg)](https://github.com/aredelmeier/EVTr/actions?query=workflow%3AR-CMD-check)
+\[![R build
+status](https://github.com/aredelmeier/EVTr/workflows/R-CMD-check/badge.svg)\](![R](https://github.com/aredelmeier/EVTr/workflows/R/badge.svg?branch=master)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![License:
@@ -50,9 +50,8 @@ artists”.
 
 ## Installation
 
-No current \[CRAN\] release exists.
-
-And the development version from [GitHub](https://github.com/) with:
+The development version from [GitHub](https://github.com/) can be
+installed with:
 
 ``` r
 # install.packages("devtools")
@@ -82,7 +81,7 @@ distribution MLE with:
 ``` r
 # non-censored MLE
 mle(data = df, method = "MLE")
-#> [1] 0.2191271
+#> [1] 0.21929
 ```
 
 Or the censored MLE with:
@@ -90,5 +89,5 @@ Or the censored MLE with:
 ``` r
 # censored MLE
 mle(data = df, method = "CensMLE")
-#> [1] 0.2191271
+#> [1] 0.21929
 ```
