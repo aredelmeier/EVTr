@@ -1,4 +1,4 @@
-
+library(EVTr)
 library(QRM) # for peaks-of-threshold model
 library(extRemes) # for exponential
 
@@ -6,8 +6,18 @@ library(data.table)
 library(ggplot2)
 library(xtable)
 
-
 # For privacy reasons, no data is actually read in this script!
+CdS <- data.table::fread(input = "")
+
+CdS[, V1 := NULL]
+setkeyv(CdS, "MediCirqueId")
+
+CdS[, ID := .GRP, by = "MediCirqueId"]
+CdS[, Censored := ifelse(end == "2017-01-01", 1, 0)]
+
+
+#    MediCirqueId PHCInjuryId         status      start        end missed_days total_missed_perfo total_exposed_perfo long_seq_missed_perfo
+# 1:        41738      294007 Out Completely 2009-07-16 2013-10-23        1561               1411                   0                  1411
 
 # Figure 5-1
 p1 <- ggplot(data = CdS, aes(y = total_missed_perfo, x = ID)) +
@@ -24,6 +34,9 @@ p1
 dev.off()
 
 # Figure 5-2
+CdS[, start := as.Date(start)]
+CdS[, end := as.Date(end)]
+CdS[, Injury_Length := as.numeric(end - start)]
 
 pdf("ME.pdf", width = 5, height = 5)
 mar.default <- c(5, 4, 4, 2) + 0.1
@@ -35,11 +48,9 @@ abline(v = 460, col = "grey")
 dev.off()
 
 # Figure 5-3
-
-
 pdf("xi.pdf", width = 5, height = 5)
 mar.default <- c(5, 4, 4, 2) + 0.1
-QRM::xiplot(data = data$Injury_Length, models = 30., start = 100, end = 2000., reverse = TRUE,
+QRM::xiplot(data = CdS$Injury_Length, models = 30., start = 100, end = 2000., reverse = TRUE,
        ci = 0.95)
 abline(h = 0.045, col = "grey", lty = 2)
 abline(v = - 940, col = "grey")
@@ -48,12 +59,10 @@ dev.off()
 
 
 # Table 5-1
-
-
-threshold <- 100
+threshold <- 10
 data <- CdS
-data_u <- data[Injury_Length > 100]
-data_u[, Injury_Length := Injury_Length - 100]
+data_u <- data[Injury_Length > threshold]
+data_u[, Injury_Length := Injury_Length - threshold]
 
 data_u_cens <- data_u[Censored == 1]
 
@@ -67,7 +76,7 @@ rownames(met_all) <- c("xi", "beta")
 
 
 for (i in 1:length(method)) {
-  met_all[1, 2 * i - 1] <- mle(data = data, threshold = threshold, method = method[i])
+  met_all[1, 2 * i - 1] <- mle(data = data, threshold = threshold, method = method[i])$par.ests[1]
 
   met_all[1, i + i] <-  mle(data = data, threshold = threshold, method = method[i])$par.ses[1]
 
@@ -78,13 +87,15 @@ for (i in 1:length(method)) {
                             information = "observed")$par.ses[2]
 }
 met_all
-
+#             MLE         se    CensMLE         se
+# xi    0.9329195 0.03461229  0.9356767 0.03472827
+# beta 25.6403924 0.90027121 25.6334673 0.90102940
 
 ## Table 5-2
 threshold <- 100
 
 data <- CdS
-data_u <- data[Injury_Length > threshold)]
+data_u <- data[Injury_Length > threshold]
 data_u[, Injury_Length := Injury_Length - threshold]
 
 beta_reg <- as.numeric(extRemes::fevd(x = data$total_missed_perfo, threshold = 100,
@@ -114,9 +125,12 @@ rownames(RL) <- c("r_k")
 RL[1, ] <- c(zk_pareto_hat1, zk_pareto_hat2, zk_pareto_hat3)
 
 xtable(RL, digits = c(1, 3, 3, 3))
+#           50     500     5000
+# r_k 224.4452 579.198 933.9508
+
 
 # Figure 5-5
-
+CdS[, Injury_Index := 1:.N, by = "ID"]
 
 pdf("Return_LevelAll.pdf", width = 5, height = 5)
 mar.default <- c(5, 4, 4, 2) + 0.1
@@ -133,16 +147,17 @@ dev.off()
 
 
 # Figure 5-6
+cirque_max <- CdS[, max_missed_perfo := max(total_missed_perfo), by = "ID"]
+cirque_max[, min_start := min(start), by = "ID"]
 
-cirque_max <- CdS[, max_missed_perfo := max(total_missed_perfo), by = "counter"]
-cirque_max[, min_start := min(start), by = "counter"]
-
-CdS.2 <- merge(CdS, cirque_max, by = "counter", all.x = TRUE)
-CdS.2[, Longest_Injury := ifelse(max_missed_perfo == total_missed_perfo, 1, 0)]
-CdS.2[, Longest_Injury := as.factor(Longest_Injury)]
+cirque_max[, Longest_Injury := ifelse(max_missed_perfo == total_missed_perfo, 1, 0)]
+cirque_max[, Longest_Injury := as.factor(Longest_Injury)]
 
 
-pmax_u <- ggplot(data = CdS.2, aes(y = total_missed_perfo, x = counter, color = Longest_Injury)) +
+pmax_u <- ggplot(data = cirque_max,
+                 aes(y = total_missed_perfo,
+                     x = ID,
+                     color = Longest_Injury)) +
   geom_jitter() +
   scale_y_continuous(breaks = sort(c(0, 88, 337, 500, 1000))) +
   xlab("Artist Id") +
@@ -156,14 +171,9 @@ pmax_u
 dev.off()
 
 # Figure 5-7
+tmp <- CdS[, Injury_Length_max := max(total_missed_perfo), by = "ID"]
 
-tmp <- CdS[, Injury_Length_max := max(total_missed_perfo), by = "MediCirqueID"]
-
-data_max_double <- merge(tmp, CdS,
-                         by = c("MediCirqueId" = "MediCirqueId", "Injury_Length_max" = "total_missed_perfo"),
-                         all.x = TRUE)
-
-data_max <- unique(data_max_double, by = "MediCirqueId")
+data_max <- unique(tmp, by = "ID")
 
 pdf("ME_max.pdf", width = 5, height = 5)
 mar.default <- c(5, 4, 4, 2) + 0.1
@@ -176,8 +186,6 @@ abline(v = 430, col = "grey")
 dev.off()
 
 # Figure 5-8
-
-
 pdf("xi_max.pdf", width = 5, height = 5)
 mar.default <- c(5, 4, 4, 2) + 0.1
 xiplot(data = data_max$Injury_Length_max, models = 30., start = 15., end = 1500., reverse = TRUE,
@@ -188,7 +196,6 @@ abline(v = -450, col = "grey")
 dev.off()
 
 # Table 5-4
-
 threshold <- 100
 
 data_max_u <- data_max[Injury_Length_max > threshold]
@@ -217,9 +224,11 @@ for (i in 1:length(method)) {
 
 met_all_max
 
+#              MLE          se     CensMLE          se
+# xi     0.2628006  0.05013235   0.2628006  0.05013235
+# beta 157.8325094 10.02336685 157.8325094 10.02336685
+
 # Table 5-5
-
-
 beta_reg <- as.numeric(extRemes::fevd(x = data$Injury_Length, threshold = 100, type = "Exponential")$results$par)
 
 r_1 <- 200
@@ -242,10 +251,12 @@ colnames(RP) <- c(r_1, r_2, r_3)
 rownames(RP) <- c("1/P(X>r)")
 RP[1, ] <- c(1 / Prob_pareto_hat1, 1 / Prob_pareto_hat2, 1 / Prob_pareto_hat3)
 
+#               200      500     1000
+# 1/P(X>r) 6.370436 25.95539 269.7688
+
 xtable(RP, digits = c(3, 3, 3, 3))
 
 # Table 5-6
-
 # Return Levels
 k_1 <- 50
 k_2 <- 500
@@ -261,10 +272,12 @@ colnames(RL) <- c(k_1, k_2, k_3)
 rownames(RL) <- c("r_k")
 RL[1, ] <- c(zk_pareto_hat1, zk_pareto_hat2, zk_pareto_hat3)
 
+#           50     500     1500
+# r_k 640.0238 1131.78 1366.407
+
 xtable(RL, digits = c(3, 3, 3, 3))
 
 # Figure 5-9
-
 # QQ Plot (I changed the qqline function a little to work with the exponential distribution)
 
 qqline <- function (y, datax = FALSE, probs = c(0.25, 0.75), qtype = 7, ...) {
@@ -289,11 +302,10 @@ qqplot(x = qexp(p = ppoints(100),
        main = "Exponential Q-Q Plot",
        xlab = "Theoretical Quantiles",
        ylab = "Sample Quantiles")
-qqline(data)
+qqline(y = data)
 dev.off()
 
 # Figure 5-10
-
 # This is data after subtracting the threshold 100
 
 pdf("QQ_Max.pdf", width = 5, height = 5)

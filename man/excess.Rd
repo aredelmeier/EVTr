@@ -4,12 +4,15 @@
 \alias{excess}
 \title{Calculate excess above the threshold. Threshold calculated using ne = count of excesses above the threshold.}
 \usage{
-excess(data, ne)
+excess(data, ne = NULL, threshold = NULL)
 }
 \arguments{
 \item{data}{Dataframe. Contains at least the columns "ID", "Injury_Length", and "Censored".}
 
 \item{ne}{Integer. Count of excesses above the threshold.}
+
+\item{theshold}{Integer. If \code{ne} is not supplied, \code{threshold} can be used to specify the threshold
+to use.}
 }
 \value{
 Dataframe. Of observations above the threshold (decided by \code{ne}) and the excess above the threshold.
