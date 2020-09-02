@@ -6,7 +6,7 @@
 <!-- badges: start -->
 
 [![R build
-status](https://github.com/aredelmeier/EVTr/workflows/R-CMD-check/badge.svg)](https://github.com/aredelmeier/EVTr/actions?query=workflow%3AR-CMD-check)
+status](https://github.com/aredelmeier/EVTr/workflows/R-CMD-check/badge.svg)](https://github.com/aredelmeier/EVTr/workflows/R/badge.svg)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![License:
