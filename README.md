@@ -58,6 +58,21 @@ installed with:
 devtools::install_github("aredelmeier/EVTr")
 ```
 
+Once the package is loaded, find help on the most important functions in
+the package using:
+
+``` r
+library(EVTr) # load package
+help(EVTr)
+```
+
+To find specific help on one of the functions use (with correct name of
+function):
+
+``` r
+help(mle)
+```
+
 ## Example
 
 This is a basic example which shows you how to solve a common problem:
