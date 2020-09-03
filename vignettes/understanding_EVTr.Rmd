@@ -26,7 +26,7 @@ We use extreme value theory - and specifically the peaks-over-threshold method -
 * Will the censored injury be the longest injury and therefore should censoring be taken into account? 
 * What is the proportion of injuries being censored as appose to healthy periods? Will the distribution of the injuries/healthy periods play a roll in this proportion?
 
-This package accompanies a masters thesis called "Using extreme value theory to model severe injuries of circus artists" which can be found: https://escholarship.mcgill.ca/concern/theses/fn107132j. 
+This package accompanies a masters thesis called "Using extreme value theory to model severe injuries of circus artists" which can be found [here]( https://escholarship.mcgill.ca/concern/theses/fn107132j). 
 
 ## Background
 
@@ -223,7 +223,7 @@ Now we do not get the same MLE.
 
 ## Simulation studies
 
-The different simulation studies can be found in inst/scripts although a lot of the parameters have been changed since the original thesis to keep the running time minimal. The hope is that eventually the masters thesis will be able to be reproduced through various simple scripts - but in August 2020 this is not done There was a real data example in the thesis which, due to privacy rules, is not included in EVTr. 
+The different simulation studies can be found in inst/scripts/thesis_experiments although a lot of the parameters have been changed since the original thesis to keep the running time minimal. Some of the functions used to conduct the simulation studies during the thesis were updated in August 2020 so that they are more understandable to the reader.There was a real data example in the thesis which, due to privacy, is not included in EVTr. 
 
 
 

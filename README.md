@@ -58,6 +58,19 @@ installed with:
 devtools::install_github("aredelmeier/EVTr")
 ```
 
+To install the package and *also* download the vignette use:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("aredelmeier/EVTr", build_vignettes = TRUE)
+```
+
+Then, you can access the vignette using:
+
+``` r
+vignette("understanding_EVTr",package = "EVTr")
+```
+
 Once the package is loaded, find help on the most important functions in
 the package using:
 
